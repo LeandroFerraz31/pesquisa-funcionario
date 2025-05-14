@@ -1,0 +1,23 @@
+{
+  "name": "workplace-survey-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard para pesquisas de ambiente de trabalho com backend",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "build": "echo 'Build not required'"
+  },
+  "author": "Caren Santos",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+
+
+

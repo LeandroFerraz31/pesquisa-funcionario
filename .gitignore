@@ -1,0 +1,12 @@
+# Node.js
+node_modules/
+npm-debug.log
+
+# Ambiente
+.env
+
+# Sistema
+.DS_Store
+
+# Temporários
+*.log
