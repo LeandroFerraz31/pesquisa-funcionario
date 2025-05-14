@@ -1,0 +1,17 @@
+{
+  "name": "workplace-survey-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard para pesquisas de ambiente de trabalho",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve -s . -p $PORT",
+    "build": "echo 'Build not required for static app'",
+    "dev": "serve -s . -p 3000"
+  },
+  "author": "Caren Santos",
+  "license": "MIT",
+  "dependencies": {
+    "serve": "^14.2.3"
+  },
+  "devDependencies": {}
+}

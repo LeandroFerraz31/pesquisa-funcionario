@@ -1,7 +1,7 @@
 // Dados simulados (baseados no Excel, com todas as unidades)
 const surveyData = [
   {
-    unit: "LOGISTICA",
+    unit: "LOGÍSTICA",
     timestamp: "2025-05-01",
     q1: "NUNCA/QUASE NUNCA", q2: "RARAMENTE", q3: "ÀS VEZES", q4: "FREQUENTEMENTE",
     q5: "SEMPRE", q6: "ÀS VEZES", q7: "RARAMENTE", q8: "NUNCA/QUASE NUNCA",
@@ -33,7 +33,6 @@ const surveyData = [
     q21: "SIM", q22: "RAZOÁVEL", q23: "SEMPRE", q24: "ÀS VEZES",
     q25: "RARAMENTE", q26: "NUNCA/QUASE NUNCA", q27: "NÃO", q28: "SIM"
   }
-  // Adicionar mais dados para F2, F3, F5, F6, F7, F9, F10, F12, F14, F17, F18 conforme necessário
 ];
 
 // Inicializar dados do localStorage
@@ -297,7 +296,31 @@ function editResponse(index) {
   document.getElementById("survey-form").querySelector("[name='q1']").value = response.q1;
   document.getElementById("survey-form").querySelector("[name='q2']").value = response.q2;
   document.getElementById("survey-form").querySelector("[name='q3']").value = response.q3;
-  // Preencha outros campos q4 a q28
+  document.getElementById("survey-form").querySelector("[name='q4']").value = response.q4;
+  document.getElementById("survey-form").querySelector("[name='q5']").value = response.q5;
+  document.getElementById("survey-form").querySelector("[name='q6']").value = response.q6;
+  document.getElementById("survey-form").querySelector("[name='q7']").value = response.q7;
+  document.getElementById("survey-form").querySelector("[name='q8']").value = response.q8;
+  document.getElementById("survey-form").querySelector("[name='q9']").value = response.q9;
+  document.getElementById("survey-form").querySelector("[name='q10']").value = response.q10;
+  document.getElementById("survey-form").querySelector("[name='q11']").value = response.q11;
+  document.getElementById("survey-form").querySelector("[name='q12']").value = response.q12;
+  document.getElementById("survey-form").querySelector("[name='q13']").value = response.q13;
+  document.getElementById("survey-form").querySelector("[name='q14']").value = response.q14;
+  document.getElementById("survey-form").querySelector("[name='q15']").value = response.q15;
+  document.getElementById("survey-form").querySelector("[name='q16']").value = response.q16;
+  document.getElementById("survey-form").querySelector("[name='q17']").value = response.q17;
+  document.getElementById("survey-form").querySelector("[name='q18']").value = response.q18;
+  document.getElementById("survey-form").querySelector("[name='q19']").value = response.q19;
+  document.getElementById("survey-form").querySelector("[name='q20']").value = response.q20;
+  document.getElementById("survey-form").querySelector("[name='q21']").value = response.q21;
+  document.getElementById("survey-form").querySelector("[name='q22']").value = response.q22;
+  document.getElementById("survey-form").querySelector("[name='q23']").value = response.q23;
+  document.getElementById("survey-form").querySelector("[name='q24']").value = response.q24;
+  document.getElementById("survey-form").querySelector("[name='q25']").value = response.q25;
+  document.getElementById("survey-form").querySelector("[name='q26']").value = response.q26;
+  document.getElementById("survey-form").querySelector("[name='q27']").value = response.q27;
+  document.getElementById("survey-form").querySelector("[name='q28']").value = response.q28;
   showTab("survey");
 }
 
