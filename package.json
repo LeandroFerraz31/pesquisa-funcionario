@@ -11,13 +11,23 @@
   "author": "Caren Santos",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "body-parser": "^1.20.2"
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "helmet": "^7.2.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
-  }
+    "nodemon": "^3.1.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeandroFerraz31/pesquisa-funcionario.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/LeandroFerraz31/pesquisa-funcionario/issues"
+  },
+  "homepage": "https://github.com/LeandroFerraz31/pesquisa-funcionario#readme"
 }
-
-
-

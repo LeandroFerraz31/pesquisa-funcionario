@@ -2,12 +2,19 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 80;
 
 // Middleware
 app.use(bodyParser.json());
+app.use(cors({
+  origin: ['http://localhost:80'], // Permite essas origens
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept'],
+  credentials: true
+}));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Carregar dados
@@ -62,6 +69,17 @@ function saveResponses() {
   fs.writeFileSync(path.join(__dirname, 'data.json'), JSON.stringify(responses, null, 2));
 }
 
+// Normalizar unidade
+function normalizeUnit(unit) {
+  return unit.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+}
+
+// Lista de unidades válidas
+const validUnits = ["Logística", "Britagem", "SST", "Oficina", "LABORATORIO", "Matriz", "CA", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F12", "F14", "F17", "F18"].map(normalizeUnit);
+const validFrequencies = ["NUNCA/QUASE NUNCA", "RARAMENTE", "ÀS VEZES", "FREQUENTEMENTE", "SEMPRE"];
+const validHealth = ["EXCELENTE", "MUITO BOA", "BOA", "RAZOÁVEL", "DEFICITÁRIA"];
+const validYesNo = ["SIM", "NÃO"];
+
 // Login
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
@@ -76,15 +94,71 @@ app.post('/api/login', (req, res) => {
 app.get('/api/responses', (req, res) => {
   const unit = req.query.unit;
   if (unit && unit !== 'ALL') {
-    res.json(responses.filter(r => r.unit === unit));
+    res.json(responses.filter(r => normalizeUnit(r.unit) === normalizeUnit(unit)));
   } else {
     res.json(responses);
+  }
+});
+
+// Obter uma resposta específica
+app.get('/api/responses/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const response = responses.find(r => r.id === id);
+  if (response) {
+    res.json(response);
+  } else {
+    res.status(404).json({ message: 'Resposta não encontrada' });
   }
 });
 
 // Criar resposta
 app.post('/api/responses', (req, res) => {
   const response = req.body;
+  if (!response.unit || !response.q1 || !response.q2 || !response.q3) {
+    return res.status(400).json({ message: "Dados da pesquisa inválidos: campos obrigatórios (unit, q1, q2, q3) não preenchidos" });
+  }
+
+  const normalizedUnit = normalizeUnit(response.unit);
+  if (!validUnits.includes(normalizedUnit)) {
+    return res.status(400).json({ message: `Unidade inválida: ${response.unit}. Unidades válidas: ${validUnits.map(u => u.replace(/LABORATORIO/, "Laboratório")).join(", ")}` });
+  }
+
+  if (!validFrequencies.includes(response.q1)) {
+    return res.status(400).json({ message: `Valor inválido para q1: ${response.q1}. Valores válidos: ${validFrequencies.join(", ")}` });
+  }
+  if (!validFrequencies.includes(response.q2)) {
+    return res.status(400).json({ message: `Valor inválido para q2: ${response.q2}. Valores válidos: ${validFrequencies.join(", ")}` });
+  }
+  if (!validFrequencies.includes(response.q3)) {
+    return res.status(400).json({ message: `Valor inválido para q3: ${response.q3}. Valores válidos: ${validFrequencies.join(", ")}` });
+  }
+
+  for (let i = 4; i <= 20; i++) {
+    const key = `q${i}`;
+    if (response[key] && !validFrequencies.includes(response[key])) {
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validFrequencies.join(", ")}` });
+    }
+  }
+  if (response.q21 && !validYesNo.includes(response.q21)) {
+    return res.status(400).json({ message: `Valor inválido para q21: ${response.q21}. Valores válidos: ${validYesNo.join(", ")}` });
+  }
+  if (response.q22 && !validHealth.includes(response.q22)) {
+    return res.status(400).json({ message: `Valor inválido para q22: ${response.q22}. Valores válidos: ${validHealth.join(", ")}` });
+  }
+  for (let i = 23; i <= 26; i++) {
+    const key = `q${i}`;
+    if (response[key] && !validFrequencies.includes(response[key])) {
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validFrequencies.join(", ")}` });
+    }
+  }
+  for (let i = 27; i <= 28; i++) {
+    const key = `q${i}`;
+    if (response[key] && !validYesNo.includes(response[key])) {
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validYesNo.join(", ")}` });
+    }
+  }
+
+  response.unit = normalizedUnit;
   response.id = responses.length ? Math.max(...responses.map(r => r.id)) + 1 : 1;
   response.timestamp = new Date().toISOString().split('T')[0];
   responses.push(response);
@@ -95,9 +169,55 @@ app.post('/api/responses', (req, res) => {
 // Editar resposta
 app.put('/api/responses/:id', (req, res) => {
   const id = parseInt(req.params.id);
+  const response = req.body;
+
+  if (!response.unit || !response.q1 || !response.q2 || !response.q3) {
+    return res.status(400).json({ message: "Dados da pesquisa inválidos: campos obrigatórios (unit, q1, q2, q3) não preenchidos" });
+  }
+
+  const normalizedUnit = normalizeUnit(response.unit);
+  if (!validUnits.includes(normalizedUnit)) {
+    return res.status(400).json({ message: `Unidade inválida: ${response.unit}. Unidades válidas: ${validUnits.map(u => u.replace(/LABORATORIO/, "Laboratório")).join(", ")}` });
+  }
+
+  if (!validFrequencies.includes(response.q1)) {
+    return res.status(400).json({ message: `Valor inválido para q1: ${response.q1}. Valores válidos: ${validFrequencies.join(", ")}` });
+  }
+  if (!validFrequencies.includes(response.q2)) {
+    return res.status(400).json({ message: `Valor inválido para q2: ${response.q2}. Valores válidos: ${validFrequencies.join(", ")}` });
+  }
+  if (!validFrequencies.includes(response.q3)) {
+    return res.status(400).json({ message: `Valor inválido para q3: ${response.q3}. Valores válidos: ${validFrequencies.join(", ")}` });
+  }
+
+  for (let i = 4; i <= 20; i++) {
+    const key = `q${i}`;
+    if (response[key] && !validFrequencies.includes(response[key])) {
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validFrequencies.join(", ")}` });
+    }
+  }
+  if (response.q21 && !validYesNo.includes(response.q21)) {
+    return res.status(400).json({ message: `Valor inválido para q21: ${response.q21}. Valores válidos: ${validYesNo.join(", ")}` });
+  }
+  if (response.q22 && !validHealth.includes(response.q22)) {
+    return res.status(400).json({ message: `Valor inválido para q22: ${response.q22}. Valores válidos: ${validHealth.join(", ")}` });
+  }
+  for (let i = 23; i <= 26; i++) {
+    const key = `q${i}`;
+    if (response[key] && !validFrequencies.includes(response[key])) {
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validFrequencies.join(", ")}` });
+    }
+  }
+  for (let i = 27; i <= 28; i++) {
+    const key = `q${i}`;
+    if (response[key] && !validYesNo.includes(response[key])) {
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validYesNo.join(", ")}` });
+    }
+  }
+
   const index = responses.findIndex(r => r.id === id);
   if (index !== -1) {
-    responses[index] = { ...req.body, id, timestamp: new Date().toISOString().split('T')[0] };
+    responses[index] = { ...response, unit: normalizedUnit, id, timestamp: new Date().toISOString().split('T')[0] };
     saveResponses();
     res.json(responses[index]);
   } else {
