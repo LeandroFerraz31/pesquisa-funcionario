@@ -5,17 +5,17 @@ const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({
-  origin: ['http://localhost:80'], // Permite essas origens
+  origin: ['http://localhost:3000', 'http://127.0.0.1:5500'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Accept'],
   credentials: true
 }));
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Carregar dados
 let responses = [];
@@ -74,7 +74,7 @@ function normalizeUnit(unit) {
   return unit.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
 }
 
-// Lista de unidades válidas
+// Lista de unidades válidas e opções
 const validUnits = ["Logística", "Britagem", "SST", "Oficina", "LABORATORIO", "Matriz", "CA", "F1", "F2", "F3", "F5", "F6", "F7", "F9", "F10", "F12", "F14", "F17", "F18"].map(normalizeUnit);
 const validFrequencies = ["NUNCA/QUASE NUNCA", "RARAMENTE", "ÀS VEZES", "FREQUENTEMENTE", "SEMPRE"];
 const validHealth = ["EXCELENTE", "MUITO BOA", "BOA", "RAZOÁVEL", "DEFICITÁRIA"];
@@ -82,6 +82,7 @@ const validYesNo = ["SIM", "NÃO"];
 
 // Login
 app.post('/api/login', (req, res) => {
+  console.log('Requisição POST /api/login recebida:', req.body);
   const { username, password } = req.body;
   if (username === 'caren.santos' && password === 'Meusfilhos@2') {
     res.json({ success: true });
@@ -92,6 +93,7 @@ app.post('/api/login', (req, res) => {
 
 // Listar respostas
 app.get('/api/responses', (req, res) => {
+  console.log('Requisição GET /api/responses recebida');
   const unit = req.query.unit;
   if (unit && unit !== 'ALL') {
     res.json(responses.filter(r => normalizeUnit(r.unit) === normalizeUnit(unit)));
@@ -102,6 +104,7 @@ app.get('/api/responses', (req, res) => {
 
 // Obter uma resposta específica
 app.get('/api/responses/:id', (req, res) => {
+  console.log('Requisição GET /api/responses/:id recebida:', req.params.id);
   const id = parseInt(req.params.id);
   const response = responses.find(r => r.id === id);
   if (response) {
@@ -113,48 +116,39 @@ app.get('/api/responses/:id', (req, res) => {
 
 // Criar resposta
 app.post('/api/responses', (req, res) => {
+  console.log('Requisição POST /api/responses recebida:', req.body);
   const response = req.body;
   if (!response.unit || !response.q1 || !response.q2 || !response.q3) {
-    return res.status(400).json({ message: "Dados da pesquisa inválidos: campos obrigatórios (unit, q1, q2, q3) não preenchidos" });
+    return res.status(400).json({ message: "Campos obrigatórios não preenchidos" });
   }
 
   const normalizedUnit = normalizeUnit(response.unit);
   if (!validUnits.includes(normalizedUnit)) {
-    return res.status(400).json({ message: `Unidade inválida: ${response.unit}. Unidades válidas: ${validUnits.map(u => u.replace(/LABORATORIO/, "Laboratório")).join(", ")}` });
+    return res.status(400).json({ message: `Unidade inválida: ${response.unit}` });
   }
 
-  if (!validFrequencies.includes(response.q1)) {
-    return res.status(400).json({ message: `Valor inválido para q1: ${response.q1}. Valores válidos: ${validFrequencies.join(", ")}` });
-  }
-  if (!validFrequencies.includes(response.q2)) {
-    return res.status(400).json({ message: `Valor inválido para q2: ${response.q2}. Valores válidos: ${validFrequencies.join(", ")}` });
-  }
-  if (!validFrequencies.includes(response.q3)) {
-    return res.status(400).json({ message: `Valor inválido para q3: ${response.q3}. Valores válidos: ${validFrequencies.join(", ")}` });
-  }
-
-  for (let i = 4; i <= 20; i++) {
+  for (let i = 1; i <= 20; i++) {
     const key = `q${i}`;
     if (response[key] && !validFrequencies.includes(response[key])) {
-      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validFrequencies.join(", ")}` });
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}` });
     }
   }
   if (response.q21 && !validYesNo.includes(response.q21)) {
-    return res.status(400).json({ message: `Valor inválido para q21: ${response.q21}. Valores válidos: ${validYesNo.join(", ")}` });
+    return res.status(400).json({ message: `Valor inválido para q21: ${response.q21}` });
   }
   if (response.q22 && !validHealth.includes(response.q22)) {
-    return res.status(400).json({ message: `Valor inválido para q22: ${response.q22}. Valores válidos: ${validHealth.join(", ")}` });
+    return res.status(400).json({ message: `Valor inválido para q22: ${response.q22}` });
   }
   for (let i = 23; i <= 26; i++) {
     const key = `q${i}`;
     if (response[key] && !validFrequencies.includes(response[key])) {
-      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validFrequencies.join(", ")}` });
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}` });
     }
   }
   for (let i = 27; i <= 28; i++) {
     const key = `q${i}`;
     if (response[key] && !validYesNo.includes(response[key])) {
-      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validYesNo.join(", ")}` });
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}` });
     }
   }
 
@@ -168,50 +162,41 @@ app.post('/api/responses', (req, res) => {
 
 // Editar resposta
 app.put('/api/responses/:id', (req, res) => {
+  console.log('Requisição PUT /api/responses/:id recebida:', req.params.id, req.body);
   const id = parseInt(req.params.id);
   const response = req.body;
 
   if (!response.unit || !response.q1 || !response.q2 || !response.q3) {
-    return res.status(400).json({ message: "Dados da pesquisa inválidos: campos obrigatórios (unit, q1, q2, q3) não preenchidos" });
+    return res.status(400).json({ message: "Campos obrigatórios não preenchidos" });
   }
 
   const normalizedUnit = normalizeUnit(response.unit);
   if (!validUnits.includes(normalizedUnit)) {
-    return res.status(400).json({ message: `Unidade inválida: ${response.unit}. Unidades válidas: ${validUnits.map(u => u.replace(/LABORATORIO/, "Laboratório")).join(", ")}` });
+    return res.status(400).json({ message: `Unidade inválida: ${response.unit}` });
   }
 
-  if (!validFrequencies.includes(response.q1)) {
-    return res.status(400).json({ message: `Valor inválido para q1: ${response.q1}. Valores válidos: ${validFrequencies.join(", ")}` });
-  }
-  if (!validFrequencies.includes(response.q2)) {
-    return res.status(400).json({ message: `Valor inválido para q2: ${response.q2}. Valores válidos: ${validFrequencies.join(", ")}` });
-  }
-  if (!validFrequencies.includes(response.q3)) {
-    return res.status(400).json({ message: `Valor inválido para q3: ${response.q3}. Valores válidos: ${validFrequencies.join(", ")}` });
-  }
-
-  for (let i = 4; i <= 20; i++) {
+  for (let i = 1; i <= 20; i++) {
     const key = `q${i}`;
     if (response[key] && !validFrequencies.includes(response[key])) {
-      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validFrequencies.join(", ")}` });
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}` });
     }
   }
   if (response.q21 && !validYesNo.includes(response.q21)) {
-    return res.status(400).json({ message: `Valor inválido para q21: ${response.q21}. Valores válidos: ${validYesNo.join(", ")}` });
+    return res.status(400).json({ message: `Valor inválido para q21: ${response.q21}` });
   }
   if (response.q22 && !validHealth.includes(response.q22)) {
-    return res.status(400).json({ message: `Valor inválido para q22: ${response.q22}. Valores válidos: ${validHealth.join(", ")}` });
+    return res.status(400).json({ message: `Valor inválido para q22: ${response.q22}` });
   }
   for (let i = 23; i <= 26; i++) {
     const key = `q${i}`;
     if (response[key] && !validFrequencies.includes(response[key])) {
-      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validFrequencies.join(", ")}` });
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}` });
     }
   }
   for (let i = 27; i <= 28; i++) {
     const key = `q${i}`;
     if (response[key] && !validYesNo.includes(response[key])) {
-      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}. Valores válidos: ${validYesNo.join(", ")}` });
+      return res.status(400).json({ message: `Valor inválido para ${key}: ${response[key]}` });
     }
   }
 
@@ -227,6 +212,7 @@ app.put('/api/responses/:id', (req, res) => {
 
 // Excluir resposta
 app.delete('/api/responses/:id', (req, res) => {
+  console.log('Requisição DELETE /api/responses/:id recebida:', req.params.id);
   const id = parseInt(req.params.id);
   const index = responses.findIndex(r => r.id === id);
   if (index !== -1) {
@@ -240,10 +226,16 @@ app.delete('/api/responses/:id', (req, res) => {
 
 // Servir frontend
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Tratamento de erros
+app.use((err, req, res, next) => {
+  console.error('Erro no servidor:', err);
+  res.status(500).json({ message: 'Erro interno do servidor' });
 });
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT} às ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`);
 });

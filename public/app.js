@@ -1,107 +1,82 @@
-const API_BASE_URL = 'http://localhost:80';
+const API_BASE_URL = 'http://localhost:3000';
 const API_URL = `${API_BASE_URL}/api`;
 
-// Estado de autenticação
+// Estado global
 let isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-
-// Unidades que compõem a Matriz
+const ALL_UNITS = ['Logística', 'Britagem', 'SST', 'Oficina', 'LABORATORIO', 'Matriz', 'CA', 'F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F9', 'F10', 'F12', 'F14', 'F17', 'F18'];
 const MATRIX_UNITS = ['Logística', 'Britagem', 'SST', 'Oficina', 'LABORATORIO', 'Matriz'];
+const FILIAL_UNITS = ['F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F9', 'F10', 'F12', 'F14', 'F17', 'F18'];
+let currentFilter = 'ALL';
 
-// Todas as unidades para o gráfico Visão por Unidade
-const ALL_UNITS = [
-  'Logística', 'Britagem', 'SST', 'Oficina', 'LABORATORIO', 'Matriz', 'CA',
-  'F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F9', 'F10', 'F12', 'F14', 'F17', 'F18'
-];
+// Função de login
+function handleLogin() {
+  document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const error = document.getElementById("login-error");
 
-// Login
-document.getElementById("login-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  const error = document.getElementById("login-error");
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      });
 
-  if (!username || !password) {
-    error.textContent = "Preencha todos os campos";
-    return;
-  }
+      if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
 
-  try {
-    console.log('Enviando requisição para:', `${API_URL}/login`);
-    const response = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ username, password })
-    });
-
-    const rawResponse = await response.text();
-    console.log("Resposta bruta do login:", rawResponse);
-
-    if (!response.ok) {
-      let errorMessage = `HTTP error! Status: ${response.status}`;
-      try {
-        const jsonError = JSON.parse(rawResponse);
-        errorMessage = jsonError.message || errorMessage;
-      } catch (e) {}
-      throw new Error(errorMessage);
+      const result = await response.json();
+      if (result.success) {
+        isAuthenticated = true;
+        localStorage.setItem('isAuthenticated', 'true');
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("app-container").style.display = "block";
+        error.textContent = "";
+        await updateDashboard();
+        await updateDetailedView();
+      } else {
+        error.textContent = result.message || "Erro desconhecido";
+      }
+    } catch (err) {
+      console.error("Erro ao fazer login:", err);
+      error.textContent = `Erro ao fazer login: ${err.message}`;
     }
+  });
+}
 
-    const result = JSON.parse(rawResponse);
-    if (result.success) {
-      isAuthenticated = true;
-      localStorage.setItem('isAuthenticated', 'true');
-      document.getElementById("login-container").style.display = "none";
-      document.getElementById("login-container").setAttribute("aria-hidden", "true");
-      document.getElementById("app-container").style.display = "block";
-      document.getElementById("app-container").removeAttribute("aria-hidden");
-      error.textContent = "";
-      document.querySelector(".tabs button").focus();
-      await updateDashboard("ALL").catch(err => console.error("Erro ao inicializar dashboard:", err));
-      await updateDetailedView().catch(err => console.error("Erro ao inicializar visão detalhada:", err));
-    } else {
-      error.textContent = result.message || "Erro desconhecido";
-    }
-  } catch (err) {
-    console.error("Erro ao fazer login:", err);
-    error.textContent = `Erro ao fazer login: ${err.message}`;
-  }
-});
+// Função de logout
+function handleLogout() {
+  document.getElementById("back-to-login").addEventListener("click", () => {
+    isAuthenticated = false;
+    localStorage.removeItem('isAuthenticated');
+    document.getElementById("app-container").style.display = "none";
+    document.getElementById("login-container").style.display = "flex";
+    document.getElementById("login-form").reset();
+    document.getElementById("login-error").textContent = "";
+  });
+}
 
-// Voltar para Login
-document.getElementById("back-to-login").addEventListener("click", () => {
-  isAuthenticated = false;
-  localStorage.removeItem('isAuthenticated');
-  document.getElementById("app-container").style.display = "none";
-  document.getElementById("login-container").style.display = "block";
-  document.getElementById("app-container").setAttribute("aria-hidden", "true");
-  document.getElementById("login-container").removeAttribute("aria-hidden");
-  document.getElementById("login-form").reset();
-  document.getElementById("login-error").textContent = "";
-});
+// Função de troca de tema
+function handleThemeToggle() {
+  document.getElementById("theme-toggle").addEventListener("click", () => {
+    document.body.classList.toggle("dark-theme");
+    localStorage.setItem('theme', document.body.classList.contains("dark-theme") ? "dark" : "light");
+    updateDashboard(); // Recarregar gráficos com as cores ajustadas
+  });
 
-// Verificar autenticação ao carregar
-window.addEventListener('load', () => {
-  if (isAuthenticated) {
-    document.getElementById("login-container").style.display = "none";
-    document.getElementById("login-container").setAttribute("aria-hidden", "true");
-    document.getElementById("app-container").style.display = "block";
-    document.getElementById("app-container").removeAttribute("aria-hidden");
-    showTab("dashboard");
-    updateDashboard("ALL").catch(err => console.error("Erro ao inicializar dashboard:", err));
-    updateDetailedView().catch(err => console.error("Erro ao inicializar visão detalhada:", err));
-  }
-});
+  // Carregar tema salvo
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === "dark") document.body.classList.add("dark-theme");
+}
 
-// Navegação por abas
+// Função para alternar abas
 function showTab(tabId) {
   if (!isAuthenticated) return;
-  document.querySelectorAll(".tab-content").forEach(tab => {
-    tab.style.display = "none";
-    tab.setAttribute("aria-hidden", "true");
-  });
+  document.querySelectorAll(".tab-content").forEach(tab => tab.style.display = "none");
   document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
   const activeTab = document.getElementById(tabId);
   activeTab.style.display = "block";
-  activeTab.removeAttribute("aria-hidden");
   document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add("active");
   if (tabId === "survey") {
     document.getElementById("survey-error").textContent = "";
@@ -109,250 +84,211 @@ function showTab(tabId) {
   }
 }
 
-// Filtro de unidade, comparação e indicador
-document.getElementById("unit-filter").addEventListener("change", (e) => {
-  if (isAuthenticated) updateDashboard(e.target.value).catch(err => console.error("Erro ao atualizar dashboard:", err));
-});
-document.getElementById("compare-unit").addEventListener("change", (e) => {
-  if (isAuthenticated) updateDashboard(document.getElementById("unit-filter").value).catch(err => console.error("Erro ao atualizar dashboard:", err));
-});
-document.getElementById("problem-filter").addEventListener("change", (e) => {
-  if (isAuthenticated) updateDashboard(document.getElementById("unit-filter").value).catch(err => console.error("Erro ao atualizar dashboard:", err));
-});
-document.getElementById("health-unit-filter").addEventListener("change", (e) => {
-  if (isAuthenticated) updateDashboard(document.getElementById("unit-filter").value).catch(err => console.error("Erro ao atualizar dashboard:", err));
-});
+// Função para processar dados do dashboard
+function processDashboardData(responses, filter = 'ALL') {
+  let filteredResponses = filter === 'ALL' ? responses : responses.filter(r => r.unit === filter);
 
-// Processar dados para gráficos
-function processData(responses, filterUnit = "ALL") {
-  const workloadCounts = { "NUNCA/QUASE NUNCA": 0, "RARAMENTE": 0, "ÀS VEZES": 0, "FREQUENTEMENTE": 0, "SEMPRE": 0 };
-  const healthCounts = { "EXCELENTE": 0, "MUITO BOA": 0, "BOA": 0, "RAZOÁVEL": 0, "DEFICITÁRIA": 0 };
-  const emotionalExhaustionCounts = { "NUNCA/QUASE NUNCA": 0, "RARAMENTE": 0, "ÀS VEZES": 0, "FREQUENTEMENTE": 0, "SEMPRE": 0 };
-
-  const filteredResponses = filterUnit === "ALL" ? responses : responses.filter(r => r.unit === filterUnit);
-  filteredResponses.forEach(r => {
-    if (r.q1) workloadCounts[r.q1] = (workloadCounts[r.q1] || 0) + 1;
-    if (r.q22) healthCounts[r.q22] = (healthCounts[r.q22] || 0) + 1;
-    if (r.q7) emotionalExhaustionCounts[r.q7] = (emotionalExhaustionCounts[r.q7] || 0) + 1;
-  });
-
-  const workloadMax = Math.max(...Object.values(workloadCounts)) * 1.1 || 10;
-  const emotionalExhaustionMax = Math.max(...Object.values(emotionalExhaustionCounts)) * 1.1 || 10;
-
-  return { workloadCounts, healthCounts, emotionalExhaustionCounts, workloadMax, emotionalExhaustionMax };
-}
-
-// Processar dados para gráfico comparativo
-function processComparisonData(matrixResponses, compareResponses) {
-  const matrixCounts = { "NUNCA/QUASE NUNCA": 0, "RARAMENTE": 0, "ÀS VEZES": 0, "FREQUENTEMENTE": 0, "SEMPRE": 0 };
-  const compareCounts = { "NUNCA/QUASE NUNCA": 0, "RARAMENTE": 0, "ÀS VEZES": 0, "FREQUENTEMENTE": 0, "SEMPRE": 0 };
-
-  matrixResponses.forEach(r => {
-    if (r.q1) matrixCounts[r.q1] = (matrixCounts[r.q1] || 0) + 1;
-  });
-  compareResponses.forEach(r => {
-    if (r.q1) compareCounts[r.q1] = (compareCounts[r.q1] || 0) + 1;
-  });
-
-  const comparisonMax = Math.max(...Object.values(matrixCounts), ...Object.values(compareCounts)) * 1.1 || 10;
-
-  return { matrixCounts, compareCounts, comparisonMax };
-}
-
-// Processar dados para gráfico Visão por Unidade
-function processUnitOverviewData(responses, question) {
+  // Respostas por Unidade (Barras)
   const unitCounts = ALL_UNITS.reduce((acc, unit) => {
-    acc[unit] = 0;
+    acc[unit] = filteredResponses.filter(r => r.unit === unit).length;
     return acc;
   }, {});
 
-  responses.forEach(r => {
-    if (r[question] && (r[question] === "FREQUENTEMENTE" || r[question] === "SEMPRE" || r[question] === "RAZOÁVEL" || r[question] === "DEFICITÁRIA")) {
-      unitCounts[r.unit] = (unitCounts[r.unit] || 0) + 1;
+  // Saúde Geral (Donut)
+  const healthCounts = { "EXCELENTE": 0, "MUITO BOA": 0, "BOA": 0, "RAZOÁVEL": 0, "DEFICITÁRIA": 0 };
+  filteredResponses.forEach(r => r.q22 && healthCounts[r.q22]++);
+
+  // Tendência de Carga de Trabalho (Linha) com impacto das filiais
+  const trendData = {};
+  const filialImpact = {};
+  filteredResponses.forEach(r => {
+    const month = new Date(r.timestamp).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+    const isHighLoad = r.q1 === 'FREQUENTEMENTE' || r.q1 === 'SEMPRE';
+    trendData[month] = (trendData[month] || 0) + (isHighLoad ? 1 : 0);
+    if (FILIAL_UNITS.includes(r.unit)) {
+      filialImpact[month] = (filialImpact[month] || 0) + (isHighLoad ? 1 : 0);
     }
   });
 
-  const unitOverviewMax = Math.max(...Object.values(unitCounts)) * 1.1 || 10;
+  // Matriz vs CA vs Filiais (Barras)
+  const comparisonCounts = {
+    "Matriz": { "FREQUENTEMENTE/SEMPRE": 0, "ÀS VEZES": 0, "NUNCA/QUASE NUNCA/RARAMENTE": 0 },
+    "CA": { "FREQUENTEMENTE/SEMPRE": 0, "ÀS VEZES": 0, "NUNCA/QUASE NUNCA/RARAMENTE": 0 },
+    "Filiais": { "FREQUENTEMENTE/SEMPRE": 0, "ÀS VEZES": 0, "NUNCA/QUASE NUNCA/RARAMENTE": 0 }
+  };
+  filteredResponses.forEach(r => {
+    const category = r.q1 === "FREQUENTEMENTE" || r.q1 === "SEMPRE" ? "FREQUENTEMENTE/SEMPRE" :
+                     r.q1 === "ÀS VEZES" ? "ÀS VEZES" : "NUNCA/QUASE NUNCA/RARAMENTE";
+    if (MATRIX_UNITS.includes(r.unit)) {
+      comparisonCounts["Matriz"][category]++;
+    } else if (r.unit === "CA") {
+      comparisonCounts["CA"][category]++;
+    } else if (FILIAL_UNITS.includes(r.unit)) {
+      comparisonCounts["Filiais"][category]++;
+    }
+  });
 
-  return { unitCounts, unitOverviewMax };
+  return { unitCounts, healthCounts, trendData, comparisonCounts, filialImpact };
 }
 
-// Atualizar dashboard
-async function updateDashboard(unit) {
+// Função para atualizar o dashboard
+async function updateDashboard(filter = 'ALL') {
   if (!isAuthenticated) return;
   try {
-    console.log('Fazendo requisição para:', `${API_URL}/responses`);
-    const response = await fetch(`${API_URL}/responses`, {
-      headers: { "Accept": "application/json" }
-    });
-    if (!response.ok) {
-      const errText = await response.text();
-      console.log('Resposta de erro da API:', errText);
-      throw new Error(`Erro na requisição: ${response.status} - ${errText}`);
-    }
-    const allResponses = await response.json();
-    console.log('Dados recebidos:', allResponses);
+    const response = await fetch(`${API_URL}/responses`, { headers: { "Accept": "application/json" }, credentials: 'include' });
+    if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
+    const responses = await response.json();
 
-    let filteredResponses = unit === "Matriz" ? allResponses.filter(r => MATRIX_UNITS.includes(r.unit)) : unit === "ALL" ? allResponses : allResponses.filter(r => r.unit === unit);
+    // Alternar para "ALL" se clicar novamente na mesma unidade
+    if (currentFilter === filter) filter = 'ALL';
+    currentFilter = filter;
 
-    const compareUnit = document.getElementById("compare-unit").value;
-    const question = document.getElementById("problem-filter").value;
-    const healthUnit = document.getElementById("health-unit-filter").value;
-    const matrixResponses = allResponses.filter(r => MATRIX_UNITS.includes(r.unit));
-    const compareResponses = allResponses.filter(r => r.unit === compareUnit);
+    const { unitCounts, healthCounts, trendData, comparisonCounts, filialImpact } = processDashboardData(responses, filter);
 
-    const { workloadCounts, healthCounts, emotionalExhaustionCounts, workloadMax, emotionalExhaustionMax } = processData(filteredResponses, healthUnit);
-    const { matrixCounts, compareCounts, comparisonMax } = processComparisonData(matrixResponses, compareResponses);
-    const { unitCounts, unitOverviewMax } = processUnitOverviewData(allResponses, question);
-
-    const fact = document.getElementById("interesting-fact").querySelector("p");
-    fact.textContent = unit === "ALL"
-      ? "Logística e F1 reportam alta exaustão física, com muitos funcionários sentindo cansaço frequente."
-      : unit === "Matriz"
-      ? "A Matriz (incluindo Logística, Britagem, SST, Oficina, Laboratório) apresenta desafios com exaustão física."
-      : `${unit} apresenta desafios com exaustão física impactando o bem-estar.`;
-
-    if (window.workloadChart) window.workloadChart.destroy();
+    // Destruir gráficos existentes
+    if (window.unitChart) window.unitChart.destroy();
     if (window.healthChart) window.healthChart.destroy();
-    if (window.emotionalExhaustionChart) window.emotionalExhaustionChart.destroy();
+    if (window.trendChart) window.trendChart.destroy();
     if (window.comparisonChart) window.comparisonChart.destroy();
-    if (window.unitOverviewChart) window.unitOverviewChart.destroy();
 
-    const workloadCtx = document.getElementById("workload-chart").getContext("2d");
-    window.workloadChart = new Chart(workloadCtx, {
-      type: "bar",
+    // Gráfico de Barras: Respostas por Unidade
+    const unitCtx = document.getElementById('unit-chart').getContext('2d');
+    window.unitChart = new Chart(unitCtx, {
+      type: 'bar',
       data: {
-        labels: ["NUNCA/QUASE NUNCA", "RARAMENTE", "ÀS VEZES", "FREQUENTEMENTE", "SEMPRE"],
+        labels: Object.keys(unitCounts),
         datasets: [{
-          label: "Respostas",
-          data: Object.values(workloadCounts),
-          backgroundColor: ["#007bff", "#28a745", "#ffc107", "#dc3545", "#6c757d"],
-          borderColor: ["#0056b3", "#218838", "#e0a800", "#c82333", "#5a6268"],
+          label: 'Respostas',
+          data: Object.values(unitCounts),
+          backgroundColor: '#ff9500',
+          borderColor: '#e07b00',
           borderWidth: 1
         }]
       },
       options: {
         responsive: true,
-        animation: { duration: 1000, easing: "easeOutBounce" },
+        maintainAspectRatio: false,
         scales: {
-          y: { beginAtZero: true, suggestedMax: workloadMax, title: { display: true, text: "Número de Respostas" }, ticks: { font: { size: 16 } } },
-          x: { title: { display: true, text: "Frequência" }, ticks: { font: { size: 16 } } }
+          y: { beginAtZero: true, title: { display: true, text: 'Respostas', font: { size: 12 } }, ticks: { font: { size: 10, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } } },
+          x: { ticks: { font: { size: 10, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' }, maxRotation: 45, minRotation: 45 } }
         },
         plugins: {
-          legend: { display: false },
-          tooltip: { backgroundColor: "#333", titleFont: { size: 16 }, bodyFont: { size: 14 } },
-          datalabels: { anchor: 'end', align: 'top', color: '#333', font: { size: 16, weight: 'bold' }, formatter: (value) => value > 0 ? value : '' }
+          legend: { display: false, labels: { color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } },
+          datalabels: { color: document.body.classList.contains('dark-theme') ? '#fff' : '#333', font: { size: 10, weight: 'bold' }, formatter: value => value > 0 ? value : '' }
         }
       },
       plugins: [ChartDataLabels]
     });
 
-    const healthCtx = document.getElementById("health-chart").getContext("2d");
+    // Gráfico Donut: Saúde Geral
+    const healthCtx = document.getElementById('health-chart').getContext('2d');
     window.healthChart = new Chart(healthCtx, {
-      type: "pie",
+      type: 'doughnut',
       data: {
-        labels: ["EXCELENTE", "MUITO BOA", "BOA", "RAZOÁVEL", "DEFICITÁRIA"],
+        labels: Object.keys(healthCounts),
         datasets: [{
           data: Object.values(healthCounts),
-          backgroundColor: ["#007bff", "#28a745", "#ffc107", "#dc3545", "#6c757d"],
-          borderColor: ["#0056b3", "#218838", "#e0a800", "#c82333", "#5a6268"],
+          backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d'],
+          borderColor: ['#0056b3', '#218838', '#e0a800', '#c82333', '#5a6268'],
           borderWidth: 1
         }]
       },
       options: {
         responsive: true,
-        animation: { duration: 1000, easing: "easeInOutQuad" },
+        maintainAspectRatio: false,
         plugins: {
-          legend: { position: "bottom", labels: { font: { size: 16 }, boxWidth: 20 } },
-          tooltip: { backgroundColor: "#333", titleFont: { size: 16 }, bodyFont: { size: 14 } },
-          datalabels: { color: "#fff", formatter: (value, ctx) => { let sum = ctx.dataset.data.reduce((a, b) => a + b, 0); return value > 0 ? ((value / sum) * 100).toFixed(1) + "%" : ""; }, font: { size: 16, weight: 'bold' } }
+          legend: { position: 'bottom', labels: { font: { size: 10, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } } },
+          datalabels: {
+            color: document.body.classList.contains('dark-theme') ? '#fff' : '#333',
+            font: { size: 10, weight: 'bold' },
+            formatter: (value, ctx) => {
+              const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              return value > 0 ? `${((value / sum) * 100).toFixed(1)}%` : '';
+            }
+          }
         }
       },
       plugins: [ChartDataLabels]
     });
 
-    const emotionalExhaustionCtx = document.getElementById("emotional-exhaustion-chart").getContext("2d");
-    window.emotionalExhaustionChart = new Chart(emotionalExhaustionCtx, {
-      type: "bar",
+    // Gráfico de Linha: Tendência
+    const trendCtx = document.getElementById('trend-chart').getContext('2d');
+    window.trendChart = new Chart(trendCtx, {
+      type: 'line',
       data: {
-        labels: ["NUNCA/QUASE NUNCA", "RARAMENTE", "ÀS VEZES", "FREQUENTEMENTE", "SEMPRE"],
-        datasets: [{
-          label: "Respostas",
-          data: Object.values(emotionalExhaustionCounts),
-          backgroundColor: ["#007bff", "#28a745", "#ffc107", "#dc3545", "#6c757d"],
-          borderColor: ["#0056b3", "#218838", "#e0a800", "#c82333", "#5a6268"],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        animation: { duration: 1000, easing: "easeOutBounce" },
-        scales: {
-          y: { beginAtZero: true, suggestedMax: emotionalExhaustionMax, title: { display: true, text: "Número de Respostas" }, ticks: { font: { size: 16 } } },
-          x: { title: { display: true, text: "Frequência" }, ticks: { font: { size: 16 } } }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: { backgroundColor: "#333", titleFont: { size: 16 }, bodyFont: { size: 14 } },
-          datalabels: { anchor: 'end', align: 'top', color: '#333', font: { size: 16, weight: 'bold' }, formatter: (value) => value > 0 ? value : '' }
-        }
-      },
-      plugins: [ChartDataLabels]
-    });
-
-    const comparisonCtx = document.getElementById("comparison-chart").getContext("2d");
-    window.comparisonChart = new Chart(comparisonCtx, {
-      type: "bar",
-      data: {
-        labels: ["NUNCA/QUASE NUNCA", "RARAMENTE", "ÀS VEZES", "FREQUENTEMENTE", "SEMPRE"],
+        labels: Object.keys(trendData),
         datasets: [
-          { label: "Matriz", data: Object.values(matrixCounts), backgroundColor: "rgba(0, 123, 255, 0.5)", borderColor: "#0056b3", borderWidth: 1 },
-          { label: compareUnit, data: Object.values(compareCounts), backgroundColor: "rgba(255, 193, 7, 0.5)", borderColor: "#e0a800", borderWidth: 1 }
+          {
+            label: 'Carga Alta (Total)',
+            data: Object.values(trendData),
+            backgroundColor: 'rgba(255, 149, 0, 0.2)',
+            borderColor: '#ff9500',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: 'Impacto Filiais',
+            data: Object.values(filialImpact),
+            backgroundColor: 'rgba(40, 167, 69, 0.2)',
+            borderColor: '#28a745',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3
+          }
         ]
       },
       options: {
         responsive: true,
-        animation: { duration: 1000, easing: "easeOutBounce" },
+        maintainAspectRatio: false,
         scales: {
-          y: { beginAtZero: true, suggestedMax: comparisonMax, title: { display: true, text: "Número de Respostas" }, ticks: { font: { size: 16 } } },
-          x: { title: { display: true, text: "Frequência (Carga de Trabalho)" }, ticks: { font: { size: 16 } } }
+          y: { beginAtZero: true, title: { display: true, text: 'Respostas', font: { size: 12, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } }, ticks: { font: { size: 10, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } } },
+          x: { ticks: { font: { size: 10, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' }, maxRotation: 45, minRotation: 45 } }
         },
         plugins: {
-          legend: { position: "top", labels: { font: { size: 16 }, boxWidth: 20 } },
-          tooltip: { backgroundColor: "#333", titleFont: { size: 16 }, bodyFont: { size: 14 } },
-          datalabels: { anchor: 'end', align: 'top', color: '#333', font: { size: 16, weight: 'bold' }, formatter: (value) => value > 0 ? value : '' }
+          legend: { labels: { font: { size: 10, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } } },
+          datalabels: { color: document.body.classList.contains('dark-theme') ? '#fff' : '#333', font: { size: 10, weight: 'bold' }, formatter: value => value > 0 ? value : '' }
         }
       },
       plugins: [ChartDataLabels]
     });
 
-    const unitOverviewCtx = document.getElementById("unit-overview-chart").getContext("2d");
-    window.unitOverviewChart = new Chart(unitOverviewCtx, {
-      type: "bar",
+    // Gráfico de Comparação: Matriz vs CA vs Filiais
+    const comparisonCtx = document.getElementById('comparison-chart').getContext('2d');
+    window.comparisonChart = new Chart(comparisonCtx, {
+      type: 'bar',
       data: {
-        labels: ALL_UNITS,
-        datasets: [{
-          label: "Respostas (FREQUENTEMENTE/SEMPRE ou RAZOÁVEL/DEFICITÁRIA)",
-          data: Object.values(unitCounts),
-          backgroundColor: ALL_UNITS.map((_, i) => `hsl(${i * 360 / ALL_UNITS.length}, 70%, 50%)`),
-          borderColor: ALL_UNITS.map((_, i) => `hsl(${i * 360 / ALL_UNITS.length}, 70%, 40%)`),
-          borderWidth: 1
-        }]
+        labels: ['FREQUENTEMENTE/SEMPRE', 'ÀS VEZES', 'NUNCA/QUASE NUNCA/RARAMENTE'],
+        datasets: [
+          { label: 'Matriz', data: Object.values(comparisonCounts['Matriz']), backgroundColor: 'rgba(0, 123, 255, 0.5)', borderColor: '#0056b3', borderWidth: 1 },
+          { label: 'CA', data: Object.values(comparisonCounts['CA']), backgroundColor: 'rgba(40, 167, 69, 0.5)', borderColor: '#218838', borderWidth: 1 },
+          { label: 'Filiais', data: Object.values(comparisonCounts['Filiais']), backgroundColor: 'rgba(255, 193, 7, 0.5)', borderColor: '#e0a800', borderWidth: 1 }
+        ]
       },
       options: {
         responsive: true,
-        animation: { duration: 1000, easing: "easeOutBounce" },
+        maintainAspectRatio: false,
         scales: {
-          y: { beginAtZero: true, suggestedMax: unitOverviewMax, title: { display: true, text: "Número de Respostas" }, ticks: { font: { size: 16 } } },
-          x: { title: { display: true, text: "Unidades" }, ticks: { font: { size: 16 }, autoSkip: false, maxRotation: 45, minRotation: 45 } }
+          y: { beginAtZero: true, title: { display: true, text: 'Respostas', font: { size: 12, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } }, ticks: { font: { size: 10, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } } },
+          x: { ticks: { font: { size: 10, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } } }
         },
         plugins: {
-          legend: { display: false },
-          tooltip: { backgroundColor: "#333", titleFont: { size: 16 }, bodyFont: { size: 14 } },
-          datalabels: { anchor: 'end', align: 'top', color: '#333', font: { size: 16, weight: 'bold' }, formatter: (value) => value > 0 ? value : '' }
+          legend: { position: 'top', labels: { font: { size: 10, color: document.body.classList.contains('dark-theme') ? '#fff' : '#333' } } },
+          datalabels: { color: document.body.classList.contains('dark-theme') ? '#fff' : '#333', font: { size: 10, weight: 'bold' }, formatter: value => value > 0 ? value : '' }
         }
       },
       plugins: [ChartDataLabels]
+    });
+
+    // Lista de Unidades
+    const unitList = document.getElementById('unit-list');
+    unitList.innerHTML = '';
+    ALL_UNITS.forEach(unit => {
+      const li = document.createElement('li');
+      li.className = 'unit-item';
+      li.textContent = `${unit}: ${unitCounts[unit] || 0} respostas`;
+      li.addEventListener('click', () => updateDashboard(unit));
+      unitList.appendChild(li);
     });
   } catch (err) {
     console.error("Erro ao atualizar dashboard:", err);
@@ -360,66 +296,42 @@ async function updateDashboard(unit) {
   }
 }
 
-// Atualizar visão detalhada
-async function updateDetailedView() {
+// Função para atualizar a visão detalhada
+async function updateDetailedView(unitFilter = "ALL") {
   if (!isAuthenticated) return;
   try {
     const tbodyElement = document.getElementById("data-table")?.querySelector("tbody");
     const cardContainerElement = document.getElementById("data-cards");
-    if (!tbodyElement || !cardContainerElement) {
-      throw new Error("Elementos 'data-table' ou 'data-cards' não encontrados no DOM");
-    }
+    if (!tbodyElement || !cardContainerElement) throw new Error("Elementos 'data-table' ou 'data-cards' não encontrados");
 
-    console.log('Fazendo requisição para:', `${API_URL}/responses`);
-    const response = await fetch(`${API_URL}/responses`, {
-      headers: { "Accept": "application/json" }
-    });
+    const response = await fetch(`${API_URL}/responses`, { headers: { "Accept": "application/json" }, credentials: 'include' });
+    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.log('Resposta de erro da API:', errText);
-      throw new Error(`Erro HTTP: ${response.status} - ${errText}`);
-    }
-
-    const responses = await response.json();
-    console.log('Dados recebidos:', responses);
-
-    if (!Array.isArray(responses)) {
-      throw new Error("Dados retornados pela API não são um array");
-    }
+    let responses = await response.json();
+    if (unitFilter !== "ALL") responses = responses.filter(r => r.unit === unitFilter);
 
     tbodyElement.innerHTML = "";
     cardContainerElement.innerHTML = "";
 
-    responses.forEach((r) => {
-      if (!r.unit || !r.timestamp || !r.q1 || !r.q2 || !r.q3) {
-        console.warn(`Resposta com ID ${r.id} está incompleta:`, r);
-        return;
-      }
-
+    responses.forEach(r => {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${r.unit}</td>
         <td>${new Date(r.timestamp).toLocaleString('pt-BR')}</td>
-        <td>${r.q1}</td><td>${r.q2}</td><td>${r.q3}</td>
-        <td>${r.q4 || ''}</td><td>${r.q5 || ''}</td><td>${r.q6 || ''}</td>
-        <td>${r.q7 || ''}</td><td>${r.q8 || ''}</td><td>${r.q9 || ''}</td>
-        <td>${r.q10 || ''}</td><td>${r.q11 || ''}</td><td>${r.q12 || ''}</td>
-        <td>${r.q13 || ''}</td><td>${r.q14 || ''}</td><td>${r.q15 || ''}</td>
-        <td>${r.q16 || ''}</td><td>${r.q17 || ''}</td><td>${r.q18 || ''}</td>
-        <td>${r.q19 || ''}</td><td>${r.q20 || ''}</td><td>${r.q21 || ''}</td>
-        <td>${r.q22 || ''}</td><td>${r.q23 || ''}</td><td>${r.q24 || ''}</td>
-        <td>${r.q25 || ''}</td><td>${r.q26 || ''}</td><td>${r.q27 || ''}</td>
-        <td>${r.q28 || ''}</td>
-        <td><button class="edit-btn" onclick="editResponse(${r.id})">Editar</button></td>
-        <td><button class="delete-btn" onclick="deleteResponse(${r.id})">Excluir</button></td>
+        <td>${r.q1}</td>
+        <td>${r.q2}</td>
+        <td>${r.q3}</td>
+        <td>
+          <button class="edit-btn" onclick="editResponse(${r.id})">Editar</button>
+          <button class="delete-btn" onclick="deleteResponse(${r.id})">Excluir</button>
+        </td>
       `;
       tbodyElement.appendChild(row);
 
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
-        <div class="card-header" onclick="toggleCard(this)" role="button" aria-expanded="false">
+        <div class="card-header" onclick="toggleCard(this)">
           <span>${r.unit} - ${new Date(r.timestamp).toLocaleString('pt-BR')}</span>
           <span>▼</span>
         </div>
@@ -465,61 +377,27 @@ async function updateDetailedView() {
   }
 }
 
-// Alternar visibilidade do card
+// Função para alternar visibilidade do card
 function toggleCard(header) {
   if (!isAuthenticated) return;
   const content = header.nextElementSibling;
   content.classList.toggle("show");
-  header.setAttribute("aria-expanded", content.classList.contains("show"));
   header.querySelector("span:last-child").textContent = content.classList.contains("show") ? "▲" : "▼";
 }
 
-// Editar resposta
+// Função para editar resposta
 async function editResponse(id) {
   if (!isAuthenticated) return;
   try {
-    console.log('Fazendo requisição para:', `${API_URL}/responses/${id}`);
-    const response = await fetch(`${API_URL}/responses/${id}`, {
-      headers: { "Accept": "application/json" }
-    });
-    if (!response.ok) {
-      const errText = await response.text();
-      console.log('Resposta de erro da API:', errText);
-      throw new Error(`Erro na requisição: ${response.status} - ${errText}`);
-    }
+    const response = await fetch(`${API_URL}/responses/${id}`, { headers: { "Accept": "application/json" }, credentials: 'include' });
+    if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
     const r = await response.json();
-    console.log('Dados recebidos:', r);
     if (r) {
       document.getElementById("edit-id").value = r.id;
       document.getElementById("survey-unit").value = r.unit;
-      document.getElementById("survey-form").querySelector("[name='q1']").value = r.q1 || '';
-      document.getElementById("survey-form").querySelector("[name='q2']").value = r.q2 || '';
-      document.getElementById("survey-form").querySelector("[name='q3']").value = r.q3 || '';
-      document.getElementById("survey-form").querySelector("[name='q4']").value = r.q4 || '';
-      document.getElementById("survey-form").querySelector("[name='q5']").value = r.q5 || '';
-      document.getElementById("survey-form").querySelector("[name='q6']").value = r.q6 || '';
-      document.getElementById("survey-form").querySelector("[name='q7']").value = r.q7 || '';
-      document.getElementById("survey-form").querySelector("[name='q8']").value = r.q8 || '';
-      document.getElementById("survey-form").querySelector("[name='q9']").value = r.q9 || '';
-      document.getElementById("survey-form").querySelector("[name='q10']").value = r.q10 || '';
-      document.getElementById("survey-form").querySelector("[name='q11']").value = r.q11 || '';
-      document.getElementById("survey-form").querySelector("[name='q12']").value = r.q12 || '';
-      document.getElementById("survey-form").querySelector("[name='q13']").value = r.q13 || '';
-      document.getElementById("survey-form").querySelector("[name='q14']").value = r.q14 || '';
-      document.getElementById("survey-form").querySelector("[name='q15']").value = r.q15 || '';
-      document.getElementById("survey-form").querySelector("[name='q16']").value = r.q16 || '';
-      document.getElementById("survey-form").querySelector("[name='q17']").value = r.q17 || '';
-      document.getElementById("survey-form").querySelector("[name='q18']").value = r.q18 || '';
-      document.getElementById("survey-form").querySelector("[name='q19']").value = r.q19 || '';
-      document.getElementById("survey-form").querySelector("[name='q20']").value = r.q20 || '';
-      document.getElementById("survey-form").querySelector("[name='q21']").value = r.q21 || '';
-      document.getElementById("survey-form").querySelector("[name='q22']").value = r.q22 || '';
-      document.getElementById("survey-form").querySelector("[name='q23']").value = r.q23 || '';
-      document.getElementById("survey-form").querySelector("[name='q24']").value = r.q24 || '';
-      document.getElementById("survey-form").querySelector("[name='q25']").value = r.q25 || '';
-      document.getElementById("survey-form").querySelector("[name='q26']").value = r.q26 || '';
-      document.getElementById("survey-form").querySelector("[name='q27']").value = r.q27 || '';
-      document.getElementById("survey-form").querySelector("[name='q28']").value = r.q28 || '';
+      for (let i = 1; i <= 28; i++) {
+        document.getElementById("survey-form").querySelector(`[name='q${i}']`).value = r[`q${i}`] || '';
+      }
       showTab("survey");
     }
   } catch (err) {
@@ -528,23 +406,15 @@ async function editResponse(id) {
   }
 }
 
-// Excluir resposta
+// Função para excluir resposta
 async function deleteResponse(id) {
   if (!isAuthenticated) return;
   if (confirm("Tem certeza que deseja excluir esta resposta?")) {
     try {
-      console.log('Fazendo requisição para:', `${API_URL}/responses/${id}`, 'Método:', 'DELETE');
-      const response = await fetch(`${API_URL}/responses/${id}`, {
-        method: "DELETE",
-        headers: { "Accept": "application/json" }
-      });
-      if (!response.ok) {
-        const errText = await response.text();
-        console.log('Resposta de erro da API:', errText);
-        throw new Error(`Erro na requisição: ${response.status} - ${errText}`);
-      }
-      await updateDashboard(document.getElementById("unit-filter").value).catch(err => console.error("Erro ao atualizar dashboard:", err));
-      await updateDetailedView().catch(err => console.error("Erro ao atualizar visão detalhada:", err));
+      const response = await fetch(`${API_URL}/responses/${id}`, { method: "DELETE", headers: { "Accept": "application/json" }, credentials: 'include' });
+      if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
+      await updateDashboard(currentFilter);
+      await updateDetailedView(document.getElementById("unit-filter").value);
       alert("Resposta excluída com sucesso!");
     } catch (err) {
       console.error("Erro ao excluir resposta:", err);
@@ -553,97 +423,96 @@ async function deleteResponse(id) {
   }
 }
 
-// Formulário de pesquisa
-document.getElementById("survey-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  console.log("Submit iniciado");
-  const formData = new FormData(e.target);
-  const error = document.getElementById("survey-error");
-  const editId = formData.get("edit-id");
+// Função para enviar/atualizar pesquisa
+function handleSurveySubmit() {
+  document.getElementById("survey-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const error = document.getElementById("survey-error");
+    const editId = formData.get("edit-id");
 
-  if (!isAuthenticated) {
-    error.textContent = "Sessão expirada. Faça login novamente.";
-    return;
-  }
-
-  document.querySelectorAll(".required-star").forEach(star => {
-    star.style.display = "none";
-  });
-
-  const selects = document.querySelectorAll("#survey-form select");
-  let isValid = true;
-  let firstEmptyField = null;
-
-  selects.forEach(select => {
-    const star = select.nextElementSibling;
-    if (!select.value || select.value === "") {
-      isValid = false;
-      if (!firstEmptyField) firstEmptyField = select;
-      star.style.display = "inline";
+    if (!isAuthenticated) {
+      error.textContent = "Sessão expirada. Faça login novamente.";
+      return;
     }
-  });
 
-  if (!isValid) {
-    error.textContent = "Por favor, preencha todos os campos obrigatórios.";
-    if (firstEmptyField) firstEmptyField.focus();
-    return;
-  }
+    document.querySelectorAll(".required-star").forEach(star => star.style.display = "none");
 
-  const unitInput = formData.get("survey-unit").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-  const normalizedUnit = ALL_UNITS.includes(unitInput) ? unitInput : formData.get("survey-unit");
-
-  const response = {
-    unit: normalizedUnit,
-    q1: formData.get("q1"), q2: formData.get("q2"), q3: formData.get("q3"),
-    q4: formData.get("q4"), q5: formData.get("q5"), q6: formData.get("q6"),
-    q7: formData.get("q7"), q8: formData.get("q8"), q9: formData.get("q9"),
-    q10: formData.get("q10"), q11: formData.get("q11"), q12: formData.get("q12"),
-    q13: formData.get("q13"), q14: formData.get("q14"), q15: formData.get("q15"),
-    q16: formData.get("q16"), q17: formData.get("q17"), q18: formData.get("q18"),
-    q19: formData.get("q19"), q20: formData.get("q20"), q21: formData.get("q21"),
-    q22: formData.get("q22"), q23: formData.get("q23"), q24: formData.get("q24"),
-    q25: formData.get("q25"), q26: formData.get("q26"), q27: formData.get("q27"),
-    q28: formData.get("q28")
-  };
-
-  try {
-    console.log('Fazendo requisição para:', editId ? `${API_URL}/responses/${editId}` : `${API_URL}/responses`, 'Método:', editId ? 'PUT' : 'POST');
-    const method = editId ? "PUT" : "POST";
-    const url = editId ? `${API_URL}/responses/${editId}` : `${API_URL}/responses`;
-    const res = await fetch(url, {
-      method: method,
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(response)
+    const selects = document.querySelectorAll("#survey-form select");
+    let isValid = true;
+    selects.forEach(select => {
+      const star = select.nextElementSibling;
+      if (!select.value) {
+        isValid = false;
+        star.style.display = "inline";
+      }
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.log('Resposta de erro da API:', errText);
-      throw new Error(`Erro na requisição: ${res.status} - ${errText}`);
+    if (!isValid) {
+      error.textContent = "Por favor, preencha todos os campos obrigatórios.";
+      return;
     }
 
-    const result = await res.json();
-    console.log('Dados recebidos:', result);
-    alert(editId ? "Resposta atualizada com sucesso!" : "Pesquisa enviada com sucesso!");
+    const response = {
+      unit: formData.get("survey-unit"),
+      q1: formData.get("q1"), q2: formData.get("q2"), q3: formData.get("q3"),
+      q4: formData.get("q4"), q5: formData.get("q5"), q6: formData.get("q6"),
+      q7: formData.get("q7"), q8: formData.get("q8"), q9: formData.get("q9"),
+      q10: formData.get("q10"), q11: formData.get("q11"), q12: formData.get("q12"),
+      q13: formData.get("q13"), q14: formData.get("q14"), q15: formData.get("q15"),
+      q16: formData.get("q16"), q17: formData.get("q17"), q18: formData.get("q18"),
+      q19: formData.get("q19"), q20: formData.get("q20"), q21: formData.get("q21"),
+      q22: formData.get("q22"), q23: formData.get("q23"), q24: formData.get("q24"),
+      q25: formData.get("q25"), q26: formData.get("q26"), q27: formData.get("q27"),
+      q28: formData.get("q28")
+    };
 
-    await updateDashboard(document.getElementById("unit-filter").value).catch(err => console.error("Erro ao atualizar dashboard após envio:", err));
-    await updateDetailedView().catch(err => console.error("Erro ao atualizar visão detalhada após envio:", err));
-  } catch (err) {
-    console.error("Erro ao enviar/atualizar pesquisa:", err);
-    error.textContent = `Erro ao enviar/atualizar pesquisa: ${err.message}`;
-    if (err.message.includes("401")) {
-      isAuthenticated = false;
-      localStorage.removeItem('isAuthenticated');
-      document.getElementById("app-container").style.display = "none";
-      document.getElementById("login-container").style.display = "block";
-      document.getElementById("app-container").setAttribute("aria-hidden", "true");
-      document.getElementById("login-container").removeAttribute("aria-hidden");
-      document.getElementById("login-error").textContent = "Sessão expirada. Faça login novamente.";
+    try {
+      const method = editId ? "PUT" : "POST";
+      const url = editId ? `${API_URL}/responses/${editId}` : `${API_URL}/responses`;
+      const res = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify(response),
+        credentials: 'include'
+      });
+
+      if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`);
+
+      await updateDashboard(currentFilter);
+      await updateDetailedView(document.getElementById("unit-filter").value);
+      alert(editId ? "Resposta atualizada com sucesso!" : "Pesquisa enviada com sucesso!");
+      document.getElementById("survey-form").reset();
+      document.getElementById("edit-id").value = "";
+      showTab("survey");
+    } catch (err) {
+      console.error("Erro ao enviar/atualizar pesquisa:", err);
+      error.textContent = `Erro ao enviar/atualizar pesquisa: ${err.message}`;
     }
-  } finally {
-    document.getElementById("survey-form").reset();
-    document.getElementById("edit-id").value = "";
-    showTab("survey");
+  });
+}
+
+// Função para filtrar visão detalhada
+function handleDetailedViewFilter() {
+  document.getElementById("unit-filter").addEventListener("change", (e) => {
+    if (isAuthenticated) updateDetailedView(e.target.value);
+  });
+}
+
+// Inicialização
+window.addEventListener('load', () => {
+  handleLogin();
+  handleLogout();
+  handleThemeToggle();
+  handleSurveySubmit();
+  handleDetailedViewFilter();
+
+  if (isAuthenticated) {
+    document.getElementById("login-container").style.display = "none";
+    document.getElementById("app-container").style.display = "block";
+    showTab("dashboard");
+    updateDashboard();
+    updateDetailedView();
   }
 });
 

@@ -3,198 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
+  <title>Dashboard de Pesquisa de Ambiente de Trabalho</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body>
-  <div id="login-container" class="container">
-    <div class="login-box">
+  <div id="login-container">
+    <form id="login-form" class="login-box">
       <h2>Login</h2>
-      <form id="login-form">
-        <div class="form-group">
-          <label for="username">Usuário:</label>
-          <input type="text" id="username" required>
-        </div>
-        <div class="form-group">
-          <label for="password">Senha:</label>
-          <input type="password" id="password" required>
-        </div>
-        <button type="submit">Entrar</button>
-        <div id="login-error" class="error"></div>
-      </form>
-    </div>
+      <div class="form-group">
+        <label for="username">Usuário:</label>
+        <input type="text" id="username" placeholder="Usuário" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Senha:</label>
+        <input type="password" id="password" placeholder="Senha" required>
+      </div>
+      <button type="submit">Entrar</button>
+      <p id="login-error" class="error"></p>
+    </form>
   </div>
 
-  <div id="app-container" style="display: none;" aria-hidden="true" class="container">
-    <div class="logout">
-      <button id="back-to-login">Sair</button>
-    </div>
-
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
-      <button class="tab" onclick="showTab('detailed')">Detalhado</button>
-      <button class="tab" onclick="showTab('survey')">Enviar Pesquisa</button>
+  <div id="app-container" style="display: none;">
+    <div class="header">
+      <div class="tabs">
+        <button onclick="showTab('dashboard')" class="tab active">Dashboard</button>
+        <button onclick="showTab('detailed')" class="tab">Visão Detalhada</button>
+        <button onclick="showTab('survey')" class="tab">Enviar Pesquisa</button>
+      </div>
+      <div class="theme-toggle">
+        <button id="theme-toggle">Mudar Tema</button>
+        <button id="back-to-login">Sair</button>
+      </div>
     </div>
 
     <div id="dashboard" class="tab-content">
-      <div class="filter">
-        <label for="unit-filter">Filtrar por Unidade:</label>
-        <select id="unit-filter">
-          <option value="ALL">Todas</option>
-          <option value="Logística">Logística</option>
-          <option value="Britagem">Britagem</option>
-          <option value="SST">SST</option>
-          <option value="Oficina">Oficina</option>
-          <option value="Laboratório">Laboratório</option>
-          <option value="Matriz">Matriz</option>
-          <option value="CA">CA</option>
-          <option value="F1">F1</option>
-          <option value="F2">F2</option>
-          <option value="F3">F3</option>
-          <option value="F5">F5</option>
-          <option value="F6">F6</option>
-          <option value="F7">F7</option>
-          <option value="F9">F9</option>
-          <option value="F10">F10</option>
-          <option value="F12">F12</option>
-          <option value="F14">F14</option>
-          <option value="F17">F17</option>
-          <option value="F18">F18</option>
-        </select>
-      </div>
-
-      <div class="filter">
-        <label for="compare-unit">Comparar Matriz com:</label>
-        <select id="compare-unit">
-          <option value="F1">F1</option>
-          <option value="CA">CA</option>
-          <option value="F2">F2</option>
-          <option value="F3">F3</option>
-          <option value="F5">F5</option>
-          <option value="F6">F6</option>
-          <option value="F7">F7</option>
-          <option value="F9">F9</option>
-          <option value="F10">F10</option>
-          <option value="F12">F12</option>
-          <option value="F14">F14</option>
-          <option value="F17">F17</option>
-          <option value="F18">F18</option>
-        </select>
-      </div>
-
-      <div class="fact" id="interesting-fact">
-        <p></p>
-      </div>
-
-      <div class="chart-grid">
-        <div class="chart-row">
-          <div class="chart-card">
-            <h3>Carga de Trabalho Mal Distribuída</h3>
-            <canvas id="workload-chart"></canvas>
+      <h2>Dashboard de Pesquisa</h2>
+      <div class="dashboard-grid">
+        <div class="chart-container">
+          <h3>Respostas por Unidade</h3>
+          <div class="chart-wrapper">
+            <canvas id="unit-chart"></canvas>
           </div>
-
-          <div class="chart-card">
-            <h3>Comparação: Matriz vs Unidade Selecionada</h3>
+        </div>
+        <div class="chart-container">
+          <h3>Saúde Geral</h3>
+          <div class="chart-wrapper">
+            <canvas id="health-chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-container">
+          <h3>Tendência de Carga de Trabalho</h3>
+          <div class="chart-wrapper">
+            <canvas id="trend-chart"></canvas>
+          </div>
+        </div>
+        <div class="chart-container">
+          <h3>Matriz vs CA vs Filiais</h3>
+          <div class="chart-wrapper">
             <canvas id="comparison-chart"></canvas>
           </div>
         </div>
-
-        <div class="chart-row">
-          <div class="chart-card">
-            <h3>Saúde Geral</h3>
-            <div class="filter">
-              <label for="health-unit-filter">Filtrar por Unidade:</label>
-              <select id="health-unit-filter">
-                <option value="ALL">Todas</option>
-                <option value="Logística">Logística</option>
-                <option value="Britagem">Britagem</option>
-                <option value="SST">SST</option>
-                <option value="Oficina">Oficina</option>
-                <option value="Laboratório">Laboratório</option>
-                <option value="Matriz">Matriz</option>
-                <option value="CA">CA</option>
-                <option value="F1">F1</option>
-                <option value="F2">F2</option>
-                <option value="F3">F3</option>
-                <option value="F5">F5</option>
-                <option value="F6">F6</option>
-                <option value="F7">F7</option>
-                <option value="F9">F9</option>
-                <option value="F10">F10</option>
-                <option value="F12">F12</option>
-                <option value="F14">F14</option>
-                <option value="F17">F17</option>
-                <option value="F18">F18</option>
-              </select>
-            </div>
-            <canvas id="health-chart"></canvas>
-          </div>
-
-          <div class="chart-card">
-            <h3>Esgotamento Emocional</h3>
-            <canvas id="emotional-exhaustion-chart"></canvas>
-          </div>
-        </div>
-
-        <div class="chart-row">
-          <div class="chart-card full-width">
-            <h3>Visão por Unidade</h3>
-            <div class="filter">
-              <label for="problem-filter">Selecionar Indicador:</label>
-              <select id="problem-filter">
-                <option value="q1">Carga Mal Distribuída</option>
-                <option value="q7">Esgotamento Emocional</option>
-                <option value="q22">Saúde Geral</option>
-              </select>
-            </div>
-            <canvas id="unit-overview-chart"></canvas>
-          </div>
+        <div class="chart-container">
+          <h3>Unidades</h3>
+          <ul id="unit-list"></ul>
         </div>
       </div>
     </div>
 
-    <div id="detailed" class="tab-content" style="display: none;" aria-hidden="true">
-      <div class="table-container">
-        <table id="data-table">
-          <thead>
-            <tr>
-              <th>Unidade</th>
-              <th>Data/Hora</th>
-              <th>Q1</th><th>Q2</th><th>Q3</th>
-              <th>Q4</th><th>Q5</th><th>Q6</th>
-              <th>Q7</th><th>Q8</th><th>Q9</th>
-              <th>Q10</th><th>Q11</th><th>Q12</th>
-              <th>Q13</th><th>Q14</th><th>Q15</th>
-              <th>Q16</th><th>Q17</th><th>Q18</th>
-              <th>Q19</th><th>Q20</th><th>Q21</th>
-              <th>Q22</th><th>Q23</th><th>Q24</th>
-              <th>Q25</th><th>Q26</th><th>Q27</th>
-              <th>Q28</th>
-              <th>Editar</th>
-              <th>Excluir</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
-      <div id="data-cards" class="card-container"></div>
-    </div>
-
-    <div id="survey" class="tab-content" style="display: none;" aria-hidden="true">
-      <form id="survey-form">
-        <input type="hidden" name="edit-id" id="edit-id" value="">
-        <div class="form-group">
-          <label for="survey-unit">Unidade:</label>
-          <select name="survey-unit" id="survey-unit">
-            <option value="">Selecione uma unidade</option>
+    <div id="detailed" class="tab-content" style="display: none;">
+      <h2>Visão Detalhada</h2>
+      <div class="filter">
+        <label>Filtrar por Unidade: 
+          <select id="unit-filter">
+            <option value="ALL">Todas</option>
             <option value="Logística">Logística</option>
             <option value="Britagem">Britagem</option>
             <option value="SST">SST</option>
             <option value="Oficina">Oficina</option>
-            <option value="Laboratório">Laboratório</option>
+            <option value="LABORATORIO">Laboratório</option>
             <option value="Matriz">Matriz</option>
             <option value="CA">CA</option>
             <option value="F1">F1</option>
@@ -210,366 +98,412 @@
             <option value="F17">F17</option>
             <option value="F18">F18</option>
           </select>
-          <span class="required-star">* </span>
-        </div>
+        </label>
+      </div>
+      <table id="data-table">
+        <thead>
+          <tr>
+            <th>Unidade</th>
+            <th>Data</th>
+            <th>Q1</th>
+            <th>Q2</th>
+            <th>Q3</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="data-cards" class="card-container"></div>
+    </div>
 
+    <div id="survey" class="tab-content" style="display: none;">
+      <h2>Enviar Pesquisa</h2>
+      <form id="survey-form">
+        <input type="hidden" id="edit-id" name="edit-id">
         <div class="form-group">
-          <label>1. Você acha que a carga de trabalho é mal distribuída?</label>
-          <select name="q1">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>Unidade: 
+            <select id="survey-unit" name="survey-unit" required>
+              <option value="">Selecione uma unidade</option>
+              <option value="Logística">Logística</option>
+              <option value="Britagem">Britagem</option>
+              <option value="SST">SST</option>
+              <option value="Oficina">Oficina</option>
+              <option value="LABORATORIO">Laboratório</option>
+              <option value="Matriz">Matriz</option>
+              <option value="CA">CA</option>
+              <option value="F1">F1</option>
+              <option value="F2">F2</option>
+              <option value="F3">F3</option>
+              <option value="F5">F5</option>
+              <option value="F6">F6</option>
+              <option value="F7">F7</option>
+              <option value="F9">F9</option>
+              <option value="F10">F10</option>
+              <option value="F12">F12</option>
+              <option value="F14">F14</option>
+              <option value="F17">F17</option>
+              <option value="F18">F18</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>2. A carga de trabalho interfere na sua vida pessoal?</label>
-          <select name="q2">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>1. Você acha que a carga de trabalho é mal distribuída?
+            <select name="q1" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>3. A carga de trabalho é adequada para suas responsabilidades?</label>
-          <select name="q3">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>2. A carga de trabalho interfere na sua vida pessoal?
+            <select name="q2" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>4. Você sente cansaço físico devido ao trabalho?</label>
-          <select name="q4">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>3. A carga de trabalho é adequada para suas responsabilidades?
+            <select name="q3" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>5. Você sente que tem energia física suficiente para o trabalho?</label>
-          <select name="q5">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>4. Você sente cansaço físico devido ao trabalho?
+            <select name="q4" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>6. Você sente que tem energia mental suficiente para o trabalho?</label>
-          <select name="q6">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>5. Você sente que tem energia física suficiente para o trabalho?
+            <select name="q5" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>7. Você sente esgotamento emocional devido ao trabalho?</label>
-          <select name="q7">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>6. Você sente que tem energia mental suficiente para o trabalho?
+            <select name="q6" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>8. Você se sente frustrado com o trabalho?</label>
-          <select name="q8">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>7. Você sente esgotamento emocional devido ao trabalho?
+            <select name="q7" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>9. Você sente pressão excessiva no trabalho?</label>
-          <select name="q9">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>8. Você se sente frustrado com o trabalho?
+            <select name="q8" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>10. O trabalho exige muito esforço mental?</label>
-          <select name="q10">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>9. Você sente pressão excessiva no trabalho?
+            <select name="q9" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>11. O trabalho exige muito esforço físico?</label>
-          <select name="q11">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>10. O trabalho exige muito esforço mental?
+            <select name="q10" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>12. O trabalho é monótono?</label>
-          <select name="q12">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>11. O trabalho exige muito esforço físico?
+            <select name="q11" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>13. O trabalho é desafiador?</label>
-          <select name="q13">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>12. O trabalho é monótono?
+            <select name="q12" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>14. O trabalho é gratificante?</label>
-          <select name="q14">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>13. O trabalho é desafiador?
+            <select name="q13" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>15. O trabalho promove seu crescimento profissional?</label>
-          <select name="q15">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>14. O trabalho é gratificante?
+            <select name="q14" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>16. Você recebe feedback adequado sobre seu trabalho?</label>
-          <select name="q16">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>15. O trabalho promove seu crescimento profissional?
+            <select name="q15" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>17. A comunicação com a liderança é eficaz?</label>
-          <select name="q17">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>16. Você recebe feedback adequado sobre seu trabalho?
+            <select name="q16" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>18. Há colaboração eficaz na equipe?</label>
-          <select name="q18">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>17. A comunicação com a liderança é eficaz?
+            <select name="q17" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>19. O ambiente de trabalho é seguro?</label>
-          <select name="q19">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>18. Há colaboração eficaz na equipe?
+            <select name="q18" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>20. O ambiente de trabalho é confortável?</label>
-          <select name="q20">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>19. O ambiente de trabalho é seguro?
+            <select name="q19" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>21. As condições de trabalho afetam sua saúde?</label>
-          <select name="q21">
-            <option value="">Selecione</option>
-            <option value="SIM">SIM</option>
-            <option value="NÃO">NÃO</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>20. O ambiente de trabalho é confortável?
+            <select name="q20" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>22. Como você avalia sua saúde geral?</label>
-          <select name="q22">
-            <option value="">Selecione</option>
-            <option value="EXCELENTE">EXCELENTE</option>
-            <option value="MUITO BOA">MUITO BOA</option>
-            <option value="BOA">BOA</option>
-            <option value="RAZOÁVEL">RAZOÁVEL</option>
-            <option value="DEFICITÁRIA">DEFICITÁRIA</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>21. As condições de trabalho afetam sua saúde?
+            <select name="q21" required>
+              <option value="">Selecione</option>
+              <option value="SIM">Sim</option>
+              <option value="NÃO">Não</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>23. Como é a qualidade do seu sono?</label>
-          <select name="q23">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>22. Como você avalia sua saúde geral?
+            <select name="q22" required>
+              <option value="">Selecione</option>
+              <option value="EXCELENTE">Excelente</option>
+              <option value="MUITO BOA">Muito Boa</option>
+              <option value="BOA">Boa</option>
+              <option value="RAZOÁVEL">Razoável</option>
+              <option value="DEFICITÁRIA">Deficitária</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>24. Você mantém uma alimentação saudável?</label>
-          <select name="q24">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>23. Como é a qualidade do seu sono?
+            <select name="q23" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>25. Você tem uma vida social ativa?</label>
-          <select name="q25">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>24. Você mantém uma alimentação saudável?
+            <select name="q24" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>26. Você tem uma vida familiar equilibrada?</label>
-          <select name="q26">
-            <option value="">Selecione</option>
-            <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-            <option value="RARAMENTE">RARAMENTE</option>
-            <option value="ÀS VEZES">ÀS VEZES</option>
-            <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-            <option value="SEMPRE">SEMPRE</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>25. Você tem uma vida social ativa?
+            <select name="q25" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>27. Você se sente bem consigo mesmo?</label>
-          <select name="q27">
-            <option value="">Selecione</option>
-            <option value="SIM">SIM</option>
-            <option value="NÃO">NÃO</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>26. Você tem uma vida familiar equilibrada?
+            <select name="q26" required>
+              <option value="">Selecione</option>
+              <option value="NUNCA/QUASE NUNCA">Nunca/Quase Nunca</option>
+              <option value="RARAMENTE">Raramente</option>
+              <option value="ÀS VEZES">Às Vezes</option>
+              <option value="FREQUENTEMENTE">Frequentemente</option>
+              <option value="SEMPRE">Sempre</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
         <div class="form-group">
-          <label>28. Você se sente reconhecido no trabalho?</label>
-          <select name="q28">
-            <option value="">Selecione</option>
-            <option value="SIM">SIM</option>
-            <option value="NÃO">NÃO</option>
-          </select>
-          <span class="required-star">* </span>
+          <label>27. Você se sente bem consigo mesmo?
+            <select name="q27" required>
+              <option value="">Selecione</option>
+              <option value="SIM">Sim</option>
+              <option value="NÃO">Não</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
         </div>
-
+        <div class="form-group">
+          <label>28. Você se sente reconhecido no trabalho?
+            <select name="q28" required>
+              <option value="">Selecione</option>
+              <option value="SIM">Sim</option>
+              <option value="NÃO">Não</option>
+            </select>
+            <span class="required-star">*</span>
+          </label>
+        </div>
         <button type="submit">Enviar</button>
-        <div id="survey-error" class="error"></div>
+        <p id="survey-error" class="error"></p>
       </form>
     </div>
   </div>
