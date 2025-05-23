@@ -10,7 +10,7 @@ const PORT = 80; // Porta fixa para Square Cloud
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({
-  origin: '*', // Permitir todas as origens (ajustar para segurança em produção)
+  origin: '*', // Permitir todas as origens (ajustar para produção)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Accept'],
   credentials: true
@@ -160,7 +160,12 @@ app.delete('/api/responses/:id', (req, res) => {
 
 // Servir frontend
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+    if (err) {
+      console.error('Erro ao servir index.html:', err);
+      res.status(404).json({ message: 'Arquivo não encontrado' });
+    }
+  });
 });
 
 // Error handling
