@@ -1,35 +1,25 @@
 :root {
-  --chart-height: 400px; /* Aumentei a altura dos gráficos */
-  --chart-font-size: 14px;
-  --chart-title-font-size: 18px;
-  --card-padding: 15px;
-  --grid-gap: 15px;
+  --chart-height: 300px;
+  --chart-font-size: 16px;
+  --chart-title-font-size: 20px;
+  --card-padding: 20px;
+  --grid-gap: 20px;
   --container-max-width: 1400px;
   --button-bg-color: #007bff;
   --button-hover-bg-color: #0056b3;
   --error-color: #ff4d4d;
   --success-color: #28a745;
-  --dashboard-bg-light: #ffffff;
-  --dashboard-bg-dark: #1e2a44;
-  --chart-bar-color: #ff9500;
-  --text-color-light: #333;
-  --text-color-dark: #fff;
-  --card-bg-light: #f9f9f9;
-  --card-bg-dark: #34495e;
+  --dashboard-bg: #1e2a44; /* Azul escuro da imagem */
+  --chart-bar-color: #ff9500; /* Laranja das barras */
+  --text-color: #fff; /* Cor do texto */
 }
 
 body {
   font-family: Arial, sans-serif;
-  background-color: var(--dashboard-bg-light);
+  background-color: var(--dashboard-bg);
   margin: 0;
   padding: 0;
-  color: var(--text-color-light);
-  transition: background-color 0.3s, color 0.3s;
-}
-
-body.dark-theme {
-  background-color: var(--dashboard-bg-dark);
-  color: var(--text-color-dark);
+  color: var(--text-color);
 }
 
 #login-container {
@@ -40,18 +30,13 @@ body.dark-theme {
 }
 
 .login-box {
-  background: var(--card-bg-light);
+  background: #2c3e50;
   padding: var(--card-padding);
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   max-width: 400px;
   width: 100%;
   text-align: center;
-}
-
-body.dark-theme .login-box {
-  background: var(--card-bg-dark);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .form-group {
@@ -63,11 +48,12 @@ body.dark-theme .login-box {
   margin-bottom: 5px;
   font-weight: bold;
   font-size: var(--chart-font-size);
+  color: var(--text-color);
 }
 
 .form-group input, .form-group select {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: var(--chart-font-size);
@@ -83,12 +69,11 @@ body.dark-theme .login-box {
 button {
   background-color: var(--button-bg-color);
   color: white;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: var(--chart-font-size);
-  transition: background-color 0.3s;
 }
 
 button:hover {
@@ -107,175 +92,82 @@ button:hover {
   font-size: var(--chart-font-size);
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  background: #f1f1f1;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-body.dark-theme .header {
-  background: #2c3e50;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-}
-
 .tabs {
   display: flex;
+  border-bottom: 2px solid var(--button-bg-color);
+  margin-bottom: 20px;
 }
 
 .tab {
-  padding: 10px 20px;
+  flex: 1;
+  padding: 15px;
   text-align: center;
   background: #e9ecef;
   cursor: pointer;
-  font-size: var(--chart-font-size);
+  font-size: calc(var(--chart-font-size) + 2px);
   border-radius: 4px 4px 0 0;
-  margin-right: 5px;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.tab:hover {
-  background: #d3d3d3;
-  transform: translateY(-2px);
 }
 
 .tab.active {
   background: var(--button-bg-color);
   color: white;
-  transform: translateY(0);
-}
-
-body.dark-theme .tab {
-  background: #3b4a5a;
-}
-
-body.dark-theme .tab:hover {
-  background: #4a5a6a;
-}
-
-.theme-toggle {
-  display: flex;
-  gap: 10px;
-}
-
-#theme-toggle {
-  background-color: #6c757d;
-}
-
-#theme-toggle:hover {
-  background-color: #5a6268;
 }
 
 .tab-content {
-  background: var(--card-bg-light);
+  background: #2c3e50;
   padding: var(--card-padding);
   border-radius: 0 0 8px 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  margin: 20px;
-  transition: background-color 0.3s;
-}
-
-body.dark-theme .tab-content {
-  background: var(--card-bg-dark);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .tab-content h2 {
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr; /* "Respostas por Unidade" ocupa mais espaço */
-  grid-template-areas:
-    "unit-chart health-chart trend-chart"
-    "unit-chart comparison-chart comparison-chart";
+  grid-template-columns: 1fr 1fr;
   gap: var(--grid-gap);
-  max-width: var(--container-max-width);
-  margin: 0 auto;
 }
 
 .chart-container {
-  background: #fff;
+  background: #34495e;
   padding: var(--card-padding);
   border-radius: 8px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-}
-
-body.dark-theme .chart-container {
-  background: #34495e;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 .chart-container h3 {
   margin: 0 0 10px;
   font-size: var(--chart-title-font-size);
   text-align: center;
+  color: var(--text-color);
 }
 
-.chart-wrapper {
-  height: var(--chart-height);
-  width: 100%;
-}
-
-.chart-wrapper canvas {
+.chart-container canvas {
   width: 100% !important;
-  height: 100% !important;
-  max-height: var(--chart-height);
+  height: var(--chart-height) !important;
 }
 
-/* Ajustes para o card de unidades com scrollbar */
 #unit-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 400px; /* Altura máxima antes da scrollbar */
-  overflow-y: auto; /* Adiciona scrollbar vertical quando necessário */
 }
 
 #unit-list li {
-  padding: 8px;
+  padding: 10px;
   background: var(--chart-bar-color);
   margin-bottom: 5px;
   border-radius: 4px;
   color: #fff;
   font-size: var(--chart-font-size);
-  cursor: pointer;
-}
-
-#unit-list li:hover {
-  background: #e07b00;
-}
-
-/* Atribuir áreas específicas aos gráficos */
-#unit-chart { grid-area: unit-chart; }
-#health-chart { grid-area: health-chart; }
-#trend-chart { grid-area: trend-chart; }
-#comparison-chart { grid-area: comparison-chart; }
-
-.filter {
-  margin-bottom: 15px;
-}
-
-.filter label {
-  font-weight: bold;
-  margin-right: 10px;
-  font-size: var(--chart-font-size);
-}
-
-.filter select {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: var(--chart-font-size);
 }
 
 .table-container {
   overflow-x: auto;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 table {
@@ -284,10 +176,11 @@ table {
 }
 
 th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  border: 1px solid #ccc;
+  padding: 10px;
   text-align: left;
   font-size: var(--chart-font-size);
+  color: var(--text-color);
 }
 
 th {
@@ -295,32 +188,23 @@ th {
   color: white;
 }
 
-body.dark-theme th, body.dark-theme td {
-  border-color: #555;
-}
-
 .card-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 15px;
 }
 
 .card {
-  background: var(--card-bg-light);
+  background: #34495e;
   border-radius: 8px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   width: calc(33.33% - 10px);
-}
-
-body.dark-theme .card {
-  background: var(--card-bg-dark);
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
 .card-header {
   background: var(--button-bg-color);
   color: white;
-  padding: 10px;
+  padding: 15px;
   border-radius: 8px 8px 0 0;
   display: flex;
   justify-content: space-between;
@@ -329,8 +213,9 @@ body.dark-theme .card {
 }
 
 .card-content {
-  padding: 10px;
+  padding: 15px;
   display: none;
+  color: var(--text-color);
 }
 
 .card-content.show {
@@ -343,9 +228,9 @@ body.dark-theme .card {
 }
 
 .card-actions {
-  margin-top: 10px;
+  margin-top: 15px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .edit-btn {
@@ -367,11 +252,6 @@ body.dark-theme .card {
 @media (max-width: 768px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "unit-chart"
-      "health-chart"
-      "trend-chart"
-      "comparison-chart";
   }
 
   .card {

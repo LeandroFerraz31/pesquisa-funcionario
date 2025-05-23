@@ -26,16 +26,11 @@
   </div>
 
   <div id="app-container" style="display: none;">
-    <div class="header">
-      <div class="tabs">
-        <button onclick="showTab('dashboard')" class="tab active">Dashboard</button>
-        <button onclick="showTab('detailed')" class="tab">Visão Detalhada</button>
-        <button onclick="showTab('survey')" class="tab">Enviar Pesquisa</button>
-      </div>
-      <div class="theme-toggle">
-        <button id="theme-toggle">Mudar Tema</button>
-        <button id="back-to-login">Sair</button>
-      </div>
+    <div class="tabs">
+      <button onclick="showTab('dashboard')" class="active">Dashboard</button>
+      <button onclick="showTab('detailed')">Visão Detalhada</button>
+      <button onclick="showTab('survey')">Enviar Pesquisa</button>
+      <button id="back-to-login">Sair</button>
     </div>
 
     <div id="dashboard" class="tab-content">
@@ -43,27 +38,15 @@
       <div class="dashboard-grid">
         <div class="chart-container">
           <h3>Respostas por Unidade</h3>
-          <div class="chart-wrapper">
-            <canvas id="unit-chart"></canvas>
-          </div>
+          <canvas id="unit-chart"></canvas>
         </div>
         <div class="chart-container">
           <h3>Saúde Geral</h3>
-          <div class="chart-wrapper">
-            <canvas id="health-chart"></canvas>
-          </div>
+          <canvas id="health-chart"></canvas>
         </div>
         <div class="chart-container">
           <h3>Tendência de Carga de Trabalho</h3>
-          <div class="chart-wrapper">
-            <canvas id="trend-chart"></canvas>
-          </div>
-        </div>
-        <div class="chart-container">
-          <h3>Matriz vs CA vs Filiais</h3>
-          <div class="chart-wrapper">
-            <canvas id="comparison-chart"></canvas>
-          </div>
+          <canvas id="trend-chart"></canvas>
         </div>
         <div class="chart-container">
           <h3>Unidades</h3>
@@ -74,32 +57,6 @@
 
     <div id="detailed" class="tab-content" style="display: none;">
       <h2>Visão Detalhada</h2>
-      <div class="filter">
-        <label>Filtrar por Unidade: 
-          <select id="unit-filter">
-            <option value="ALL">Todas</option>
-            <option value="Logística">Logística</option>
-            <option value="Britagem">Britagem</option>
-            <option value="SST">SST</option>
-            <option value="Oficina">Oficina</option>
-            <option value="LABORATORIO">Laboratório</option>
-            <option value="Matriz">Matriz</option>
-            <option value="CA">CA</option>
-            <option value="F1">F1</option>
-            <option value="F2">F2</option>
-            <option value="F3">F3</option>
-            <option value="F5">F5</option>
-            <option value="F6">F6</option>
-            <option value="F7">F7</option>
-            <option value="F9">F9</option>
-            <option value="F10">F10</option>
-            <option value="F12">F12</option>
-            <option value="F14">F14</option>
-            <option value="F17">F17</option>
-            <option value="F18">F18</option>
-          </select>
-        </label>
-      </div>
       <table id="data-table">
         <thead>
           <tr>
