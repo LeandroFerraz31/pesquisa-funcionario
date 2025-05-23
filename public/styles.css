@@ -9,9 +9,9 @@
   --button-hover-bg-color: #0056b3;
   --error-color: #ff4d4d;
   --success-color: #28a745;
-  --dashboard-bg: #1e2a44; /* Azul escuro da imagem */
-  --chart-bar-color: #ff9500; /* Laranja das barras */
-  --text-color: #fff; /* Cor do texto */
+  --dashboard-bg: #1e2a44;
+  --chart-bar-color: #ff9500;
+  --text-color: #fff;
 }
 
 body {

@@ -2,7 +2,7 @@ const API_BASE_URL = window.location.origin;
 const API_URL = `${API_BASE_URL}/api`;
 
 // Estado de autenticação
-
+let isAuthenticated = false;
 
 // Unidades
 const ALL_UNITS = ['Logística', 'Britagem', 'SST', 'Oficina', 'LABORATORIO', 'Matriz', 'CA', 'F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F9', 'F10', 'F12', 'F14', 'F17', 'F18'];
@@ -79,19 +79,16 @@ function showTab(tabId) {
 
 // Processar dados para o dashboard
 function processDashboardData(responses) {
-  // Respostas por Unidade (Barras)
   const unitCounts = ALL_UNITS.reduce((acc, unit) => {
     acc[unit] = responses.filter(r => r.unit === unit).length;
     return acc;
   }, {});
 
-  // Saúde Geral (Donut)
   const healthCounts = { "EXCELENTE": 0, "MUITO BOA": 0, "BOA": 0, "RAZOÁVEL": 0, "DEFICITÁRIA": 0 };
   responses.forEach(r => {
     if (r.q22) healthCounts[r.q22]++;
   });
 
-  // Tendência de Carga de Trabalho (Linha) - por mês
   const trendData = {};
   responses.forEach(r => {
     const month = new Date(r.timestamp).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
@@ -114,12 +111,10 @@ async function updateDashboard() {
 
     const { unitCounts, healthCounts, trendData } = processDashboardData(responses);
 
-    // Destruir gráficos existentes
     if (window.unitChart) window.unitChart.destroy();
     if (window.healthChart) window.healthChart.destroy();
     if (window.trendChart) window.trendChart.destroy();
 
-    // Gráfico de Barras: Respostas por Unidade
     const unitCtx = document.getElementById('unit-chart').getContext('2d');
     window.unitChart = new Chart(unitCtx, {
       type: 'bar',
@@ -147,7 +142,6 @@ async function updateDashboard() {
       plugins: [ChartDataLabels]
     });
 
-    // Gráfico Donut: Saúde Geral
     const healthCtx = document.getElementById('health-chart').getContext('2d');
     window.healthChart = new Chart(healthCtx, {
       type: 'doughnut',
@@ -177,7 +171,6 @@ async function updateDashboard() {
       plugins: [ChartDataLabels]
     });
 
-    // Gráfico de Linha: Tendência
     const trendCtx = document.getElementById('trend-chart').getContext('2d');
     window.trendChart = new Chart(trendCtx, {
       type: 'line',
@@ -207,7 +200,6 @@ async function updateDashboard() {
       plugins: [ChartDataLabels]
     });
 
-    // Lista de Unidades
     const unitList = document.getElementById('unit-list');
     unitList.innerHTML = '';
     ALL_UNITS.forEach(unit => {

@@ -5,17 +5,17 @@ const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 80;
+const PORT = 80; // Porta fixa para Square Cloud
 
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({
-  origin: ['http://localhost:80', 'http://127.0.0.1:80'],
+  origin: '*', // Permitir todas as origens (ajustar para segurança em produção)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Accept'],
   credentials: true
 }));
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Carregar dados
 let responses = [];
@@ -171,5 +171,5 @@ app.use((err, req, res, next) => {
 
 // Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta ${PORT} às ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`);
 });
