@@ -15,7 +15,7 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Accept'],
   credentials: true
 }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
 // Carregar dados
 let responses = [];

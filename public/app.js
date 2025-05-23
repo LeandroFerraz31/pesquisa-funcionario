@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:80';
+const API_BASE_URL = window.location.origin;
 const API_URL = `${API_BASE_URL}/api`;
 
 // Estado de autenticação
