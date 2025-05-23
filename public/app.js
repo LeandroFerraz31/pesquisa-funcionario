@@ -1,5 +1,11 @@
-const API_BASE_URL = 'http://localhost: 80';
+const express = require('express');
+const path = require('path');
+const app = express();
+const API_BASE_URL = process.env.API_URL || 'http://localhost:3000';
 const API_URL = `${API_BASE_URL}/api`;
+
+// Middleware para servir arquivos estáticos
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 // Estado global
 let isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
@@ -516,26 +522,17 @@ window.addEventListener('load', () => {
   }
 });
 
-// Exportar o aplicativo Express para o Square Cloud
-const express = require('express');
-const app = express();
-app.use(express.static('public')); // Servir arquivos estáticos (ex.: styles.css, index.html)
-app.use('/api', (req, res, next) => {
-  // Middleware para rotas de API
-  next();
-});
-
 // Rota raiz
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
 // Configurar rotas dinâmicas aqui (ex.: dashboard, survey)
 app.get('/dashboard', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 app.get('/survey', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
 // Exportar o aplicativo
