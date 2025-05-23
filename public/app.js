@@ -2,7 +2,7 @@ const API_BASE_URL = 'http://localhost:80';
 const API_URL = `${API_BASE_URL}/api`;
 
 // Estado de autenticação
-let isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+
 
 // Unidades
 const ALL_UNITS = ['Logística', 'Britagem', 'SST', 'Oficina', 'LABORATORIO', 'Matriz', 'CA', 'F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F9', 'F10', 'F12', 'F14', 'F17', 'F18'];
@@ -27,7 +27,6 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
     const result = await response.json();
     if (result.success) {
       isAuthenticated = true;
-      localStorage.setItem('isAuthenticated', 'true');
       document.getElementById("login-container").style.display = "none";
       document.getElementById("app-container").style.display = "block";
       error.textContent = "";
@@ -45,7 +44,6 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
 // Voltar para Login
 document.getElementById("back-to-login").addEventListener("click", () => {
   isAuthenticated = false;
-  localStorage.removeItem('isAuthenticated');
   document.getElementById("app-container").style.display = "none";
   document.getElementById("login-container").style.display = "flex";
   document.getElementById("login-form").reset();
