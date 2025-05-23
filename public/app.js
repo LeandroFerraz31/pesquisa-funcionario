@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://localhost: 80';
 const API_URL = `${API_BASE_URL}/api`;
 
 // Estado global
@@ -516,5 +516,27 @@ window.addEventListener('load', () => {
   }
 });
 
-// Inicializar abas
-showTab("dashboard");
+// Exportar o aplicativo Express para o Square Cloud
+const express = require('express');
+const app = express();
+app.use(express.static('public')); // Servir arquivos estáticos (ex.: styles.css, index.html)
+app.use('/api', (req, res, next) => {
+  // Middleware para rotas de API
+  next();
+});
+
+// Rota raiz
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+// Configurar rotas dinâmicas aqui (ex.: dashboard, survey)
+app.get('/dashboard', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
+app.get('/survey', (req, res) => {
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+// Exportar o aplicativo
+module.exports = app;
