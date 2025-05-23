@@ -5,12 +5,12 @@ const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
-const PORT = 80; // Porta fixa para Square Cloud
+const PORT = process.env.PORT || 3000; // Usar porta do ambiente ou fallback para 3000
 
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({
-  origin: '*', // Permitir todas as origens (ajustar para produção)
+  origin: '*', // Ajustar para produção
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Accept'],
   credentials: true
@@ -19,10 +19,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Carregar dados
 let responses = [];
+const dataFilePath = path.join(__dirname, 'data.json');
 try {
-  const data = fs.readFileSync(path.join(__dirname, 'data.json'), 'utf8');
+  const data = fs.readFileSync(dataFilePath, 'utf8');
   responses = JSON.parse(data);
 } catch (err) {
+  console.error('Erro ao carregar data.json:', err);
   responses = [
     {
       id: 1,
@@ -43,12 +45,20 @@ try {
       q1: "ÀS VEZES", q2: "FREQUENTEMENTE", q3: "RARAMENTE"
     }
   ];
-  fs.writeFileSync(path.join(__dirname, 'data.json'), JSON.stringify(responses, null, 2));
+  try {
+    fs.writeFileSync(dataFilePath, JSON.stringify(responses, null, 2));
+  } catch (writeErr) {
+    console.error('Erro ao criar data.json inicial:', writeErr);
+  }
 }
 
 // Salvar dados
 function saveResponses() {
-  fs.writeFileSync(path.join(__dirname, 'data.json'), JSON.stringify(responses, null, 2));
+  try {
+    fs.writeFileSync(dataFilePath, JSON.stringify(responses, null, 2));
+  } catch (err) {
+    console.error('Erro ao salvar data.json:', err);
+  }
 }
 
 // Normalizar unidade
@@ -83,7 +93,7 @@ app.get('/api/responses', (req, res) => {
 });
 
 // Obter uma resposta específica
-app.get('/api/responses/:id', (req, res) => {
+app.get('/api/responses/: id', (req, res) => {
   console.log('Requisição GET /api/responses/:id recebida:', req.params.id);
   const id = parseInt(req.params.id);
   const response = responses.find(r => r.id === id);
@@ -120,7 +130,7 @@ app.post('/api/responses', (req, res) => {
 });
 
 // Editar resposta
-app.put('/api/responses/:id', (req, res) => {
+app.put('/api/responses/: id', (req, res) => {
   console.log('Requisição PUT /api/responses/:id recebida:', req.params.id, req.body);
   const id = parseInt(req.params.id);
   const response = req.body;
@@ -145,7 +155,7 @@ app.put('/api/responses/:id', (req, res) => {
 });
 
 // Excluir resposta
-app.delete('/api/responses/:id', (req, res) => {
+app.delete('/api/responses/: id', (req, res) => {
   console.log('Requisição DELETE /api/responses/:id recebida:', req.params.id);
   const id = parseInt(req.params.id);
   const index = responses.findIndex(r => r.id === id);

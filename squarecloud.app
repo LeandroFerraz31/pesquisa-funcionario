@@ -4,5 +4,8 @@ MEMORY=512
 VERSION=recommended
 DISPLAY_NAME=pesquisa-funcionario
 SUBDOMAIN=pesquisa-funcionario
-type=javascript 
-entrypoint=server.js
+ENV=production
+
+
+
+
