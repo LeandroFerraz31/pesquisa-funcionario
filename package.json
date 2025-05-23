@@ -2,14 +2,24 @@
   "name": "workplace-survey-dashboard",
   "version": "1.0.0",
   "description": "Dashboard para pesquisas de ambiente de trabalho com backend",
+  "keywords": [],
+  "homepage": "https://github.com/LeandroFerraz31/pesquisa-funcionario#readme",
+  "bugs": {
+    "url": "https://github.com/LeandroFerraz31/pesquisa-funcionario/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeandroFerraz31/pesquisa-funcionario.git"
+  },
+  "license": "MIT",
+  "author": "Caren Santos",
+  "type": "commonjs",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
     "build": "echo 'Build not required'"
   },
-  "author": "Caren Santos",
-  "license": "MIT",
   "dependencies": {
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
@@ -19,15 +29,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LeandroFerraz31/pesquisa-funcionario.git"
-  },
-  "keywords": [],
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/LeandroFerraz31/pesquisa-funcionario/issues"
-  },
-  "homepage": "https://github.com/LeandroFerraz31/pesquisa-funcionario#readme"
+  }
 }
