@@ -1,388 +1,631 @@
-const API_BASE_URL = window.location.origin;
-const API_URL = `${API_BASE_URL}/api`;
+// Configuração global
+const API_BASE = 'http://localhost:3000';
 
-// Estado de autenticação
-let isAuthenticated = false;
+const UNITS = [
+    'Logística', 'Britagem', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6',
+    'Administrativo', 'RH', 'Financeiro', 'TI', 'Segurança',
+    'Manutenção', 'Qualidade', 'Vendas', 'Compras', 'Almoxarifado'
+];
+const RESPONSE_OPTIONS = [
+    'NUNCA/QUASE NUNCA',
+    'RARAMENTE',
+    'ÀS VEZES',
+    'FREQUENTEMENTE',
+    'SEMPRE'
+];
 
-// Unidades
-const ALL_UNITS = ['Logística', 'Britagem', 'SST', 'Oficina', 'LABORATORIO', 'Matriz', 'CA', 'F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F9', 'F10', 'F12', 'F14', 'F17', 'F18'];
+// Variáveis globais
+let currentResponses = [];
+let charts = {};
 
-// Login
-document.getElementById("login-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-  const error = document.getElementById("login-error");
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
 
-  try {
-    const response = await fetch(`${API_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ username, password }),
-      credentials: 'include'
+function initializeApp() {
+    populateSelects();
+    setupEventListeners();
+}
+
+function populateSelects() {
+    // Popular select de unidades
+    const unitSelects = [document.getElementById('unitSelect'), document.getElementById('unitFilter')];
+    
+    unitSelects.forEach(select => {
+        if (select) {
+            UNITS.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit;
+                option.textContent = unit;
+                select.appendChild(option);
+            });
+        }
     });
+    
+    // Popular selects de respostas
+    const responseSelects = ['q1Select', 'q2Select', 'q3Select'];
+    responseSelects.forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (select) {
+            RESPONSE_OPTIONS.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+        }
+    });
+}
 
-    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-
-    const result = await response.json();
-    if (result.success) {
-      isAuthenticated = true;
-      document.getElementById("login-container").style.display = "none";
-      document.getElementById("app-container").style.display = "block";
-      error.textContent = "";
-      await updateDashboard();
-      await updateDetailedView();
-    } else {
-      error.textContent = result.message || "Erro desconhecido";
+function setupEventListeners() {
+    // Form de resposta
+    const responseForm = document.getElementById('responseForm');
+    if (responseForm) {
+        responseForm.addEventListener('submit', handleResponseSubmit);
     }
-  } catch (err) {
-    console.error("Erro ao fazer login:", err);
-    error.textContent = `Erro ao fazer login: ${err.message}`;
-  }
-});
-
-// Voltar para Login
-document.getElementById("back-to-login").addEventListener("click", () => {
-  isAuthenticated = false;
-  document.getElementById("app-container").style.display = "none";
-  document.getElementById("login-container").style.display = "flex";
-  document.getElementById("login-form").reset();
-  document.getElementById("login-error").textContent = "";
-});
-
-// Verificar autenticação ao carregar
-window.addEventListener('load', () => {
-  if (isAuthenticated) {
-    document.getElementById("login-container").style.display = "none";
-    document.getElementById("app-container").style.display = "block";
-    showTab("dashboard");
-    updateDashboard();
-    updateDetailedView();
-  }
-});
-
-// Navegação por abas
-function showTab(tabId) {
-  if (!isAuthenticated) return;
-  document.querySelectorAll(".tab-content").forEach(tab => {
-    tab.style.display = "none";
-  });
-  document.querySelectorAll(".tabs button").forEach(tab => tab.classList.remove("active"));
-  const activeTab = document.getElementById(tabId);
-  activeTab.style.display = "block";
-  document.querySelector(`button[onclick="showTab('${tabId}')"]`).classList.add("active");
-  if (tabId === "survey") {
-    document.getElementById("survey-error").textContent = "";
-    document.querySelectorAll(".required-star").forEach(star => star.style.display = "none");
-  }
-}
-
-// Processar dados para o dashboard
-function processDashboardData(responses) {
-  const unitCounts = ALL_UNITS.reduce((acc, unit) => {
-    acc[unit] = responses.filter(r => r.unit === unit).length;
-    return acc;
-  }, {});
-
-  const healthCounts = { "EXCELENTE": 0, "MUITO BOA": 0, "BOA": 0, "RAZOÁVEL": 0, "DEFICITÁRIA": 0 };
-  responses.forEach(r => {
-    if (r.q22) healthCounts[r.q22]++;
-  });
-
-  const trendData = {};
-  responses.forEach(r => {
-    const month = new Date(r.timestamp).toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
-    trendData[month] = (trendData[month] || 0) + (r.q1 === 'FREQUENTEMENTE' || r.q1 === 'SEMPRE' ? 1 : 0);
-  });
-
-  return { unitCounts, healthCounts, trendData };
-}
-
-// Atualizar dashboard
-async function updateDashboard() {
-  if (!isAuthenticated) return;
-  try {
-    const response = await fetch(`${API_URL}/responses`, {
-      headers: { "Accept": "application/json" },
-      credentials: 'include'
-    });
-    if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
-    const responses = await response.json();
-
-    const { unitCounts, healthCounts, trendData } = processDashboardData(responses);
-
-    if (window.unitChart) window.unitChart.destroy();
-    if (window.healthChart) window.healthChart.destroy();
-    if (window.trendChart) window.trendChart.destroy();
-
-    const unitCtx = document.getElementById('unit-chart').getContext('2d');
-    window.unitChart = new Chart(unitCtx, {
-      type: 'bar',
-      data: {
-        labels: Object.keys(unitCounts),
-        datasets: [{
-          label: 'Respostas',
-          data: Object.values(unitCounts),
-          backgroundColor: '#ff9500',
-          borderColor: '#e07b00',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Número de Respostas', color: '#fff' }, ticks: { color: '#fff' } },
-          x: { ticks: { color: '#fff', maxRotation: 45, minRotation: 45 } }
-        },
-        plugins: {
-          legend: { display: false },
-          datalabels: { color: '#fff', font: { size: 14, weight: 'bold' }, formatter: value => value > 0 ? value : '' }
+    
+    // Enter key no login
+    document.getElementById('password').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            login();
         }
-      },
-      plugins: [ChartDataLabels]
     });
-
-    const healthCtx = document.getElementById('health-chart').getContext('2d');
-    window.healthChart = new Chart(healthCtx, {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(healthCounts),
-        datasets: [{
-          data: Object.values(healthCounts),
-          backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6c757d'],
-          borderColor: ['#0056b3', '#218838', '#e0a800', '#c82333', '#5a6268'],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'bottom', labels: { color: '#fff', font: { size: 14 } } },
-          datalabels: {
-            color: '#fff',
-            font: { size: 14, weight: 'bold' },
-            formatter: (value, ctx) => {
-              const sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-              return value > 0 ? `${((value / sum) * 100).toFixed(1)}%` : '';
-            }
-          }
-        }
-      },
-      plugins: [ChartDataLabels]
-    });
-
-    const trendCtx = document.getElementById('trend-chart').getContext('2d');
-    window.trendChart = new Chart(trendCtx, {
-      type: 'line',
-      data: {
-        labels: Object.keys(trendData),
-        datasets: [{
-          label: 'Carga Alta (Frequente/Sempre)',
-          data: Object.values(trendData),
-          backgroundColor: 'rgba(255, 149, 0, 0.2)',
-          borderColor: '#ff9500',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true, title: { display: true, text: 'Número de Respostas', color: '#fff' }, ticks: { color: '#fff' } },
-          x: { ticks: { color: '#fff', maxRotation: 45, minRotation: 45 } }
-        },
-        plugins: {
-          legend: { labels: { color: '#fff', font: { size: 14 } } },
-          datalabels: { color: '#fff', font: { size: 14, weight: 'bold' }, formatter: value => value > 0 ? value : '' }
-        }
-      },
-      plugins: [ChartDataLabels]
-    });
-
-    const unitList = document.getElementById('unit-list');
-    unitList.innerHTML = '';
-    ALL_UNITS.forEach(unit => {
-      const li = document.createElement('li');
-      li.textContent = `${unit}: ${unitCounts[unit] || 0} respostas`;
-      unitList.appendChild(li);
-    });
-  } catch (err) {
-    console.error("Erro ao atualizar dashboard:", err);
-    alert("Erro ao carregar dados do dashboard: " + err.message);
-  }
 }
 
-// Atualizar visão detalhada
-async function updateDetailedView() {
-  if (!isAuthenticated) return;
-  try {
-    const tbodyElement = document.getElementById("data-table")?.querySelector("tbody");
-    const cardContainerElement = document.getElementById("data-cards");
-    if (!tbodyElement || !cardContainerElement) throw new Error("Elementos 'data-table' ou 'data-cards' não encontrados");
-
-    const response = await fetch(`${API_URL}/responses`, {
-      headers: { "Accept": "application/json" },
-      credentials: 'include'
-    });
-    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-
-    const responses = await response.json();
-
-    tbodyElement.innerHTML = "";
-    cardContainerElement.innerHTML = "";
-
-    responses.forEach(r => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${r.unit}</td>
-        <td>${new Date(r.timestamp).toLocaleString('pt-BR')}</td>
-        <td>${r.q1}</td>
-        <td>${r.q2}</td>
-        <td>${r.q3}</td>
-        <td>
-          <button class="edit-btn" onclick="editResponse(${r.id})">Editar</button>
-          <button class="delete-btn" onclick="deleteResponse(${r.id})">Excluir</button>
-        </td>
-      `;
-      tbodyElement.appendChild(row);
-
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="card-header" onclick="toggleCard(this)">
-          <span>${r.unit} - ${new Date(r.timestamp).toLocaleString('pt-BR')}</span>
-          <span>▼</span>
-        </div>
-        <div class="card-content">
-          <p><strong>Carga Mal Distribuída:</strong> ${r.q1}</p>
-          <p><strong>Interfere Vida Pessoal:</strong> ${r.q2}</p>
-          <p><strong>Carga Adequada:</strong> ${r.q3}</p>
-          <div class="card-actions">
-            <button class="edit-btn" onclick="editResponse(${r.id})">Editar</button>
-            <button class="delete-btn" onclick="deleteResponse(${r.id})">Excluir</button>
-          </div>
-        </div>
-      `;
-      cardContainerElement.appendChild(card);
-    });
-  } catch (err) {
-    console.error("Erro ao atualizar visão detalhada:", err);
-  }
-}
-
-// Alternar visibilidade do card
-function toggleCard(header) {
-  if (!isAuthenticated) return;
-  const content = header.nextElementSibling;
-  content.classList.toggle("show");
-  header.querySelector("span:last-child").textContent = content.classList.contains("show") ? "▲" : "▼";
-}
-
-// Editar resposta
-async function editResponse(id) {
-  if (!isAuthenticated) return;
-  try {
-    const response = await fetch(`${API_URL}/responses/${id}`, {
-      headers: { "Accept": "application/json" },
-      credentials: 'include'
-    });
-    if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
-    const r = await response.json();
-    if (r) {
-      document.getElementById("edit-id").value = r.id;
-      document.getElementById("survey-unit").value = r.unit;
-      document.getElementById("survey-form").querySelector("[name='q1']").value = r.q1 || '';
-      document.getElementById("survey-form").querySelector("[name='q2']").value = r.q2 || '';
-      document.getElementById("survey-form").querySelector("[name='q3']").value = r.q3 || '';
-      showTab("survey");
+// Funções de autenticação
+// Modificar a função login
+async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    
+    if (!username || !password) {
+        errorDiv.textContent = 'Por favor, preencha todos os campos.';
+        return;
     }
-  } catch (err) {
-    console.error("Erro ao editar resposta:", err);
-    alert("Erro ao carregar dados para edição: " + err.message);
-  }
-}
-
-// Excluir resposta
-async function deleteResponse(id) {
-  if (!isAuthenticated) return;
-  if (confirm("Tem certeza que deseja excluir esta resposta?")) {
+    
     try {
-      const response = await fetch(`${API_URL}/responses/${id}`, {
-        method: "DELETE",
-        headers: { "Accept": "application/json" },
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error(`Erro na requisição: ${response.status}`);
-      await updateDashboard();
-      await updateDetailedView();
-      alert("Resposta excluída com sucesso!");
-    } catch (err) {
-      console.error("Erro ao excluir resposta:", err);
-      alert("Erro ao excluir resposta: " + err.message);
+        const response = await fetch(`${API_BASE}/api/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Armazenar estado de login
+            localStorage.setItem('isAuthenticated', 'true');
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboardScreen').classList.remove('hidden');
+            loadDashboardData();
+        } else {
+            errorDiv.textContent = data.message || 'Credenciais inválidas.';
+        }
+    } catch (error) {
+        errorDiv.textContent = 'Erro ao conectar com o servidor.';
+        console.error('Erro no login:', error);
     }
-  }
 }
 
-// Formulário de pesquisa
-document.getElementById("survey-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const error = document.getElementById("survey-error");
-  const editId = formData.get("edit-id");
-
-  if (!isAuthenticated) {
-    error.textContent = "Sessão expirada. Faça login novamente.";
-    return;
-  }
-
-  document.querySelectorAll(".required-star").forEach(star => star.style.display = "none");
-
-  const selects = document.querySelectorAll("#survey-form select");
-  let isValid = true;
-  selects.forEach(select => {
-    const star = select.nextElementSibling;
-    if (!select.value) {
-      isValid = false;
-      star.style.display = "inline";
+// Adicionar verificação de autenticação no carregamento
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se está autenticado
+    if (localStorage.getItem('isAuthenticated') === 'true') {
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('dashboardScreen').classList.remove('hidden');
+        loadDashboardData();
+    } else {
+        initializeApp();
     }
-  });
-
-  if (!isValid) {
-    error.textContent = "Por favor, preencha todos os campos obrigatórios.";
-    return;
-  }
-
-  const response = {
-    unit: formData.get("survey-unit"),
-    q1: formData.get("q1"),
-    q2: formData.get("q2"),
-    q3: formData.get("q3")
-  };
-
-  try {
-    const method = editId ? "PUT" : "POST";
-    const url = editId ? `${API_URL}/responses/${editId}` : `${API_URL}/responses`;
-    const res = await fetch(url, {
-      method: method,
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify(response),
-      credentials: 'include'
-    });
-
-    if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`);
-
-    await updateDashboard();
-    await updateDetailedView();
-    alert(editId ? "Resposta atualizada com sucesso!" : "Pesquisa enviada com sucesso!");
-    document.getElementById("survey-form").reset();
-    document.getElementById("edit-id").value = "";
-    showTab("survey");
-  } catch (err) {
-    console.error("Erro ao enviar/atualizar pesquisa:", err);
-    error.textContent = `Erro ao enviar/atualizar pesquisa: ${err.message}`;
-  }
 });
 
-// Inicializar abas
-showTab("dashboard");
+// Modificar a função logout
+function logout() {
+    localStorage.removeItem('isAuthenticated');
+    document.getElementById('dashboardScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('loginError').textContent = '';
+}
+
+function logout() {
+    document.getElementById('dashboardScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('loginError').textContent = '';
+}
+
+// Funções de navegação
+function showDashboard() {
+    document.getElementById('dashboardTab').classList.remove('hidden');
+    document.getElementById('responsesTab').classList.add('hidden');
+    document.getElementById('dashboardBtn').classList.add('active');
+    document.getElementById('responsesBtn').classList.remove('active');
+    loadDashboardData();
+}
+
+function showResponses() {
+    document.getElementById('dashboardTab').classList.add('hidden');
+    document.getElementById('responsesTab').classList.remove('hidden');
+    document.getElementById('dashboardBtn').classList.remove('active');
+    document.getElementById('responsesBtn').classList.add('active');
+    loadResponses();
+}
+
+// Funções de carregamento de dados
+// Modificar a função loadDashboardData
+async function loadDashboardData() {
+    try {
+        const [chartResponse, comparisonResponse] = await Promise.all([
+            fetch(`${API_BASE}/api/chart-data`),
+            fetch(`${API_BASE}/api/comparison-data`)
+        ]);
+        
+        const chartData = await chartResponse.json();
+        const comparisonData = await comparisonResponse.json();
+        
+        if (chartData.error || comparisonData.error) {
+            console.error('Erro ao carregar dados:', chartData.error || comparisonData.error);
+            return;
+        }
+        
+        createCharts(chartData, comparisonData);
+        updateUnitsList(chartData.unitData);
+    } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
+    }
+}
+
+// Modificar a função createCharts
+function createCharts(chartData, comparisonData) {
+    // ... (código existente dos outros gráficos)
+
+    // Gráfico de comparação entre unidades
+    const comparisonCtx = document.getElementById('comparisonChart');
+    if (comparisonCtx && comparisonData) {
+        // Preparar dados para o gráfico de linhas
+        const units = comparisonData.map(item => item.unit);
+        const q1Data = comparisonData.map(item => item.q1_avg);
+        const q2Data = comparisonData.map(item => item.q2_avg);
+        const q3Data = comparisonData.map(item => item.q3_avg);
+
+        charts.comparisonChart = new Chart(comparisonCtx, {
+            type: 'line',
+            data: {
+                labels: units,
+                datasets: [
+                    {
+                        label: 'Carga de Trabalho',
+                        data: q1Data,
+                        borderColor: '#FF6384',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 3
+                    },
+                    {
+                        label: 'Estresse no Trabalho',
+                        data: q2Data,
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 3
+                    },
+                    {
+                        label: 'Tempo para Tarefas',
+                        data: q3Data,
+                        borderColor: '#FFCE56',
+                        backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                        tension: 0.3,
+                        borderWidth: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 1,
+                        max: 5,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                const options = [
+                                    '', 'NUNCA', 'RARAMENTE', 'ÀS VEZES', 'FREQUENTEMENTE', 'SEMPRE'
+                                ];
+                                return options[value];
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const options = [
+                                    '', 'NUNCA/QUASE NUNCA', 'RARAMENTE', 'ÀS VEZES', 'FREQUENTEMENTE', 'SEMPRE'
+                                ];
+                                return `${context.dataset.label}: ${options[Math.round(value)]} (${value.toFixed(1)})`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+async function loadResponses(unitFilter = '') {
+    try {
+        const url = unitFilter ? 
+            `${API_BASE}/api/responses?unit=${encodeURIComponent(unitFilter)}` : 
+            `${API_BASE}/api/responses`;
+            
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('Erro ao carregar respostas:', data.error);
+            return;
+        }
+        
+        currentResponses = data;
+        displayResponses(data);
+    } catch (error) {
+        console.error('Erro ao carregar respostas:', error);
+    }
+}
+
+// Funções de gráficos
+function createCharts(data) {
+    // Destruir gráficos existentes
+    Object.values(charts).forEach(chart => {
+        if (chart && typeof chart.destroy === 'function') {
+            chart.destroy();
+        }
+    });
+    
+    // Gráfico por unidade
+    const unitCtx = document.getElementById('unitChart');
+    if (unitCtx) {
+        charts.unitChart = new Chart(unitCtx, {
+            type: 'doughnut',
+            data: {
+                labels: data.unitData.map(item => item.unit),
+                datasets: [{
+                    data: data.unitData.map(item => item.count),
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF',
+                        '#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56',
+                        '#9966FF', '#FF9F40', '#4BC0C0', '#C9CBCF',
+                        '#FF6384', '#36A2EB'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    datalabels: {
+                        color: '#fff',
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: (value, ctx) => {
+                            const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return value > 0 ? `${percentage}%` : '';
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+    
+    // Gráfico de saúde
+    const healthCtx = document.getElementById('healthChart');
+    if (healthCtx) {
+        charts.healthChart = new Chart(healthCtx, {
+            type: 'bar',
+            data: {
+                labels: data.healthData.map(item => item.label),
+                datasets: [{
+                    label: 'Respostas',
+                    data: data.healthData.map(item => item.value),
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: '#333',
+                        font: {
+                            weight: 'bold'
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+    
+    // Gráfico de tendência
+    const trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+        charts.trendChart = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: data.trendData.map(item => {
+                    const date = new Date(item.date);
+                    return date.toLocaleDateString('pt-BR');
+                }),
+                datasets: [{
+                    label: 'Respostas por Dia',
+                    data: data.trendData.map(item => item.count),
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+}
+
+function updateUnitsList(unitData) {
+    const unitsList = document.getElementById('unitsList');
+    if (!unitsList) return;
+    
+    unitsList.innerHTML = '';
+    
+    unitData.forEach(unit => {
+        const unitItem = document.createElement('div');
+        unitItem.className = 'unit-item';
+        unitItem.onclick = () => {
+            document.getElementById('unitFilter').value = unit.unit;
+            showResponses();
+            filterResponses();
+        };
+        
+        unitItem.innerHTML = `
+            <span class="unit-name">${unit.unit}</span>
+            <span class="unit-count">${unit.count}</span>
+        `;
+        
+        unitsList.appendChild(unitItem);
+    });
+}
+
+// Funções de exibição de respostas
+function displayResponses(responses) {
+    const container = document.getElementById('responsesContainer');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (responses.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 2rem;">Nenhuma resposta encontrada.</p>';
+        return;
+    }
+    
+    responses.forEach(response => {
+        const card = document.createElement('div');
+        card.className = 'response-card';
+        
+        const date = new Date(response.created_at);
+        const formattedDate = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+        
+        card.innerHTML = `
+            <div class="response-header">
+                <div class="response-unit">${response.unit}</div>
+                <div class="response-date">${formattedDate}</div>
+            </div>
+            <div class="response-details">
+                <div class="response-item">
+                    <div class="response-question">Como você avalia sua carga de trabalho?</div>
+                    <div class="response-answer">${response.q1}</div>
+                </div>
+                <div class="response-item">
+                    <div class="response-question">Com que frequência você sente estresse no trabalho?</div>
+                    <div class="response-answer">${response.q2}</div>
+                </div>
+                <div class="response-item">
+                    <div class="response-question">Você tem tempo suficiente para completar suas tarefas?</div>
+                    <div class="response-answer">${response.q3}</div>
+                </div>
+            </div>
+            <div class="response-actions">
+                <button onclick="editResponse(${response.id})" class="btn-edit">Editar</button>
+                <button onclick="deleteResponse(${response.id})" class="btn-delete">Excluir</button>
+            </div>
+        `;
+        
+        container.appendChild(card);
+    });
+}
+
+function filterResponses() {
+    const unitFilter = document.getElementById('unitFilter').value;
+    loadResponses(unitFilter);
+}
+
+// Funções do modal
+function showAddForm() {
+    document.getElementById('modalTitle').textContent = 'Nova Pesquisa';
+    document.getElementById('responseForm').reset();
+    document.getElementById('responseId').value = '';
+    showModal();
+}
+
+async function editResponse(id) {
+    try {
+        const response = await fetch(`${API_BASE}/api/responses/${id}`);
+        const data = await response.json();
+        
+        if (data.error) {
+            alert('Erro ao carregar resposta: ' + data.error);
+            return;
+        }
+        
+        document.getElementById('modalTitle').textContent = 'Editar Pesquisa';
+        document.getElementById('responseId').value = data.id;
+        document.getElementById('unitSelect').value = data.unit;
+        document.getElementById('q1Select').value = data.q1;
+        document.getElementById('q2Select').value = data.q2;
+        document.getElementById('q3Select').value = data.q3;
+        
+        showModal();
+    } catch (error) {
+        alert('Erro ao carregar resposta para edição.');
+        console.error('Erro:', error);
+    }
+}
+
+
+async function deleteResponse(id) {
+    if (!confirm('Tem certeza que deseja excluir esta resposta?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/api/responses/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            alert('Erro ao excluir resposta: ' + data.error);
+            return;
+        }
+        
+        alert('Resposta excluída com sucesso!');
+        loadResponses(document.getElementById('unitFilter').value);
+        
+    } catch (error) {
+        alert('Erro ao excluir resposta.');
+        console.error('Erro:', error);
+    }
+}
+
+function showModal() {
+    document.getElementById('responseModal').classList.remove('hidden');
+    document.getElementById('overlay').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('responseModal').classList.add('hidden');
+    document.getElementById('overlay').classList.add('hidden');
+}
+
+// Manipulação do formulário
+async function handleResponseSubmit(e) {
+    if (e) e.preventDefault();
+
+    const unit = document.getElementById('unitSelect').value;
+    const q1 = document.getElementById('q1Select').value;
+    const q2 = document.getElementById('q2Select').value;
+    const q3 = document.getElementById('q3Select').value;
+    const responseId = document.getElementById('responseId').value;
+
+    if (!unit || !q1 || !q2 || !q3) {
+        alert('Preencha todos os campos obrigatórios.');
+        return;
+    }
+
+    const formData = { unit, q1, q2, q3 };
+    const isEdit = responseId !== '';
+    const url = isEdit
+        ? `${API_BASE}/api/responses/${responseId}`
+        : `${API_BASE}/api/responses`;
+
+    try {
+        const response = await fetch(url, {
+            method: isEdit ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) throw new Error('Erro ao salvar');
+
+        closeModal(); // fecha o modal após salvar
+        await loadResponses(document.getElementById('unitFilter').value); // atualiza respostas
+        if (!isEdit) alert('Pesquisa enviada com sucesso!');
+    } catch (err) {
+        console.error('Erro ao salvar resposta:', err);
+        alert('Erro ao salvar resposta.');
+    }
+}

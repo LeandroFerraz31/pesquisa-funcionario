@@ -1,8 +1,9 @@
 # Node.js
 node_modules/
 npm-debug.log
+implementos.txt
 
-data.json
+employees.db
 # Ambiente
 .env
 
