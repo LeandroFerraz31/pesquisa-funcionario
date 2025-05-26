@@ -19,6 +19,39 @@ body {
     display: none !important;
 }
 
+/* Tema Claro (padrão) */
+.light-theme {
+    --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --text-color: #333;
+    --card-bg: white;
+    --shadow: rgba(0,0,0,0.2);
+    --border: #e1e5e9;
+    --highlight: #667eea;
+    --secondary-text: #6c757d;
+    --button-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --button-text: white;
+    --chart-bg: #FFFFFF;
+}
+
+/* Tema Escuro */
+.dark-theme {
+    --background: linear-gradient(135deg, #1E3A8A 0%, #2D3748 100%);
+    --text-color: #E0E0E0;
+    --card-bg: #2D3748;
+    --shadow: rgba(255,255,255,0.1);
+    --border: #4A5568;
+    --highlight: #90CDF4;
+    --secondary-text: #A0AEC0;
+    --button-bg: linear-gradient(135deg, #90CDF4 0%, #63B3ED 100%);
+    --button-text: #1A202C;
+    --chart-bg: #1E3A8A;
+}
+
+body {
+    background: var(--background);
+    color: var(--text-color);
+}
+
 /* Login Screen */
 .login-container {
     display: flex;
@@ -30,17 +63,17 @@ body {
 }
 
 .login-container h1 {
-    color: white;
+    color: var(--button-text);
     margin-bottom: 2rem;
     font-size: 2.5rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 4px var(--shadow);
 }
 
 .login-form {
-    background: white;
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 30px var(--shadow);
     width: 100%;
     max-width: 400px;
 }
@@ -53,29 +86,31 @@ body {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #555;
+    color: var(--text-color);
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
     padding: 12px;
-    border: 2px solid #e1e5e9;
+    border: 2px solid var(--border);
     border-radius: 8px;
     font-size: 16px;
     transition: border-color 0.3s ease;
+    background: var(--card-bg);
+    color: var(--text-color);
 }
 
 .form-group input:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--highlight);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--button-bg);
+    color: var(--button-text);
     border: none;
     padding: 12px 24px;
     border-radius: 8px;
@@ -88,7 +123,7 @@ button {
 
 button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 5px 15px var(--shadow);
 }
 
 .error-message {
@@ -98,32 +133,41 @@ button:hover {
     font-weight: 500;
 }
 
+.success-message {
+    color: #28a745;
+    text-align: center;
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
 /* Dashboard Screen */
 #dashboardScreen {
-    background: #f8f9fa;
+    background: var(--card-bg);
 }
 
 .dashboard-header {
-    background: white;
+    background: var(--card-bg);
     padding: 1.5rem 2rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px var(--shadow);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .dashboard-header h1 {
-    color: #333;
+    color: var(--text-color);
     font-size: 1.8rem;
 }
 
 .header-actions {
     display: flex;
-    gap: 1rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--button-bg);
     width: auto;
 }
 
@@ -133,9 +177,9 @@ button:hover {
 }
 
 .dashboard-nav {
-    background: white;
+    background: var(--card-bg);
     padding: 0 2rem;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--border);
     display: flex;
     gap: 1rem;
 }
@@ -146,21 +190,21 @@ button:hover {
     padding: 1rem 1.5rem;
     cursor: pointer;
     border-bottom: 3px solid transparent;
-    color: #6c757d;
+    color: var(--secondary-text);
     font-weight: 600;
     width: auto;
     transition: all 0.3s ease;
 }
 
 .nav-btn:hover {
-    color: #667eea;
+    color: var(--highlight);
     transform: none;
     box-shadow: none;
 }
 
 .nav-btn.active {
-    color: #667eea;
-    border-bottom-color: #667eea;
+    color: var(--highlight);
+    border-bottom-color: var(--highlight);
 }
 
 .dashboard-content {
@@ -168,47 +212,54 @@ button:hover {
 }
 
 .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 2rem;
     max-width: 1400px;
     margin: 0 auto;
 }
 
 .chart-container {
-    background: white;
+    background: var(--card-bg);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px var(--shadow);
     padding: 1rem;
     position: relative;
-    height: 400px; /* Altura fixa importante */
+    height: 400px;
+}
+
+.chart-container.full-width {
+    flex: 0 0 100%;
+    height: 300px;
+}
+
+.chart-container.side-by-side {
+    flex: 1 1 calc(33.333% - 1.33rem);
+    min-width: 300px;
+}
+
+.units-list.side-by-side {
+    flex: 1 1 calc(33.333% - 1.33rem);
+    min-width: 300px;
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px var(--shadow);
 }
 
 .chart-container:hover {
     transform: translateY(-5px);
 }
 
-.chart-container.wide {
-    grid-column: span 2;
-    height: 300px; /* Altura menor para gráfico de linha */
-}
-
 .chart-container h3 {
     margin: 0 0 1rem 0;
-    color: #333;
+    color: var(--text-color);
     font-size: 1.1rem;
     text-align: center;
 }
 
-.chart-container.wide canvas {
+.chart-container.full-width canvas {
     max-height: 220px !important;
-}
-
-.units-list {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
 }
 
 .unit-item {
@@ -216,13 +267,13 @@ button:hover {
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--border);
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
 .unit-item:hover {
-    background-color: #f8f9fa;
+    background-color: var(--border);
     border-radius: 8px;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
@@ -234,12 +285,12 @@ button:hover {
 
 .unit-name {
     font-weight: 600;
-    color: #333;
+    color: var(--text-color);
 }
 
 .unit-count {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--button-bg);
+    color: var(--button-text);
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.9rem;
@@ -249,25 +300,27 @@ button:hover {
 /* Responses Tab */
 .responses-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 2rem;
 }
 
 .filter-container select {
     padding: 0.5rem 1rem;
-    border: 2px solid #e1e5e9;
+    border: 2px solid var(--border);
     border-radius: 8px;
     font-size: 14px;
     min-width: 200px;
+    background: var(--card-bg);
+    color: var(--text-color);
 }
 
 .response-card {
-    background: white;
-    padding: 1.5rem;
+    background: var(--card-bg);
+    padding: 1rem;
     margin-bottom: 1rem;
     border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 20px var(--shadow);
     transition: transform 0.3s ease;
 }
 
@@ -285,38 +338,53 @@ button:hover {
 .response-unit {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #667eea;
+    color: var(--highlight);
 }
 
 .response-date {
-    color: #6c757d;
+    color: var(--secondary-text);
     font-size: 0.9rem;
 }
 
 .response-details {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
     margin-bottom: 1rem;
 }
 
 .response-item {
-    padding: 1rem;
-    background: #f8f9fa;
+    padding: 0.75rem;
+    background: var(--border);
     border-radius: 10px;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid var(--highlight);
 }
 
 .response-question {
     font-weight: 600;
-    color: #333;
+    color: var(--text-color);
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
 }
 
 .response-answer {
     font-weight: 700;
-    color: #667eea;
+}
+
+.response-answer[data-answer="NUNCA/QUASE NUNCA"] {
+    color: #e74c3c;
+}
+.response-answer[data-answer="RARAMENTE"] {
+    color: #e67e22;
+}
+.response-answer[data-answer="ÀS VEZES"] {
+    color: #f1c40f;
+}
+.response-answer[data-answer="FREQUENTEMENTE"] {
+    color: #2ecc71;
+}
+.response-answer[data-answer="SEMPRE"] {
+    color: #27ae60;
 }
 
 .response-actions {
@@ -345,10 +413,10 @@ button:hover {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: white;
+    background: var(--card-bg);
     padding: 2rem;
     border-radius: 15px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px var(--shadow);
     z-index: 1001;
     max-width: 500px;
     width: 90%;
@@ -368,7 +436,7 @@ button:hover {
 
 .modal-content h3 {
     margin-bottom: 1.5rem;
-    color: #333;
+    color: var(--text-color);
     font-size: 1.5rem;
 }
 
@@ -384,7 +452,23 @@ button:hover {
     min-width: 100px;
 }
 
+/* Estilo do botão de tema */
+.theme-toggle {
+    transition: transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.2);
+}
+
 /* Responsive Design */
+@media (max-width: 1200px) {
+    .chart-container.side-by-side,
+    .units-list.side-by-side {
+        flex: 1 1 calc(50% - 1rem);
+    }
+}
+
 @media (max-width: 768px) {
     .dashboard-header {
         flex-direction: column;
@@ -393,16 +477,15 @@ button:hover {
     }
 
     .header-actions {
+        flex-direction: column;
         width: 100%;
-        justify-content: center;
+        align-items: center;
     }
 
-    .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-}
+    .chart-container.side-by-side,
+    .units-list.side-by-side {
+        flex: 0 0 100%;
+    }
 
     .dashboard-content {
         padding: 1rem;
@@ -442,5 +525,26 @@ button:hover {
         flex: 1;
         text-align: center;
         min-width: 120px;
+    }
+
+    .response-card {
+        padding: 0.75rem;
+    }
+
+    .response-unit {
+        font-size: 1rem;
+    }
+
+    .response-date {
+        font-size: 0.8rem;
+    }
+
+    .response-item {
+        font-size: 0.85rem;
+    }
+
+    .response-actions button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
     }
 }

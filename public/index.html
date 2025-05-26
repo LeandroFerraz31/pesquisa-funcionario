@@ -3,124 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesquisa Funcionário - Dashboard</title>
-    <link rel="stylesheet" href="./styles.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+    <title>Pesquisa de Funcionários</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 </head>
 <body>
-    <div id="loginScreen" class="screen">
-        <div class="login-container">
-            <h1>Sistema de Pesquisa</h1>
-            <div class="login-form">
-                <div class="form-group">
-                    <label for="username">Usuário:</label>
-                    <input type="text" id="username" placeholder="Digite seu usuário">
-                </div>
-                <div class="form-group">
-                    <label for="password">Senha:</label>
-                    <input type="password" id="password" placeholder="Digite sua senha">
-                </div>
-                <button onclick="login()">Entrar</button>
-                <div id="loginError" class="error-message"></div>
+    <div id="loginScreen" class="screen login-container">
+        <h1>Pesquisa de Funcionários</h1>
+        <form class="login-form">
+            <div class="form-group">
+                <label for="username">Usuário</label>
+                <input type="text" id="username" placeholder="Digite seu usuário" required>
             </div>
-        </div>
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" placeholder="Digite sua senha" required>
+            </div>
+            <button type="button" onclick="login()">Entrar</button>
+            <div id="loginError" class="error-message"></div>
+        </form>
     </div>
 
     <div id="dashboardScreen" class="screen hidden">
-        <header class="dashboard-header">
-            <h1>Dashboard - Pesquisa Funcionários</h1>
+        <div class="dashboard-header">
+            <h1>Pesquisa de Funcionários</h1>
             <div class="header-actions">
-                <button onclick="showAddForm()" class="btn-primary">+ Nova Pesquisa</button>
-                <button onclick="logout()" class="btn-secondary">Sair</button>
+                <button class="btn-primary" onclick="showAddForm()">Nova Pesquisa</button>
+                <button class="btn-secondary" onclick="logout()">Sair</button>
             </div>
-        </header>
+        </div>
 
-        <nav class="dashboard-nav">
-            <button onclick="showDashboard()" class="nav-btn active" id="dashboardBtn">Dashboard</button>
-            <button onclick="showResponses()" class="nav-btn" id="responsesBtn">Respostas</button>
-        </nav>
+        <div class="dashboard-nav">
+            <button id="dashboardBtn" class="nav-btn active" onclick="showDashboard()">Dashboard</button>
+            <button id="responsesBtn" class="nav-btn" onclick="showResponses()">Respostas</button>
+        </div>
 
-        <main class="dashboard-content">
-            <div id="dashboardTab" class="tab-content">
-                <div class="dashboard-grid">
-                    <div class="chart-container">
-                        <h3>Respostas por Unidade (Clique para filtrar)</h3>
-                        <canvas id="unitChart"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Saúde Geral dos Funcionários</h3>
-                        <canvas id="healthChart"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Comparação entre Unidades</h3>
-                        <canvas id="comparisonChart"></canvas>
-                    </div>
-                    <div class="units-list">
-                        <h3>Unidades</h3>
-                        <div id="unitsList"></div>
-                    </div>
-                    <div class="chart-container wide">
-                        <h3>Tendência de Respostas (Últimos 30 Dias)</h3>
-                        <canvas id="trendChart"></canvas>
-                    </div>
+        <div id="dashboardTab" class="dashboard-content">
+            <div class="dashboard-grid">
+                <div class="chart-container full-width">
+                    <h3>Indicadores de Saúde</h3>
+                    <canvas id="healthChart"></canvas>
+                </div>
+                <div class="chart-container side-by-side">
+                    <h3>Comparação entre Unidades</h3>
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+                <div class="chart-container side-by-side">
+                    <h3>Distribuição por Unidade</h3>
+                    <canvas id="unitChart"></canvas>
+                </div>
+                <div class="chart-container side-by-side">
+                    <h3>Tendência de Respostas</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div id="unitsList" class="chart-container side-by-side">
+                    <h3>Lista de Unidades</h3>
+                    <div id="unitsListContent"></div>
                 </div>
             </div>
+        </div>
 
-            <div id="responsesTab" class="tab-content hidden">
-                <div class="responses-header">
-                    <h3>Respostas Detalhadas</h3>
-                    <div class="filter-container">
-                        <select id="unitFilter" onchange="filterResponses()">
-                            <option value="">Todas as unidades</option>
-                        </select>
-                    </div>
+        <div id="responsesTab" class="dashboard-content hidden">
+            <div class="responses-header">
+                <div class="filter-container">
+                    <select id="unitFilter" onchange="filterResponses()">
+                        <option value="">Todas as Unidades</option>
+                    </select>
                 </div>
-                <div id="responsesContainer"></div>
             </div>
-        </main>
+            <div id="responsesContainer"></div>
+        </div>
     </div>
 
-    <!-- Modal para adicionar/editar respostas -->
     <div id="responseModal" class="modal hidden">
         <div class="modal-content">
             <h3 id="modalTitle">Nova Pesquisa</h3>
             <form id="responseForm">
                 <input type="hidden" id="responseId">
                 <div class="form-group">
-                    <label for="unitSelect">Unidade:</label>
-                    <select id="unitSelect" required>
-                        <option value="">Selecione uma unidade</option>
-                    </select>
+                    <label for="unitSelect">Unidade</label>
+                    <select id="unitSelect" required></select>
                 </div>
                 <div class="form-group">
-                    <label for="q1Select">Pergunta 1 - Como você avalia sua carga de trabalho?</label>
-                    <select id="q1Select" required>
-                        <option value="">Selecione uma opção</option>
-                    </select>
+                    <label for="q1Select">Como você avalia sua carga de trabalho?</label>
+                    <select id="q1Select" required></select>
                 </div>
                 <div class="form-group">
-                    <label for="q2Select">Pergunta 2 - Com que frequência você sente estresse no trabalho?</label>
-                    <select id="q2Select" required>
-                        <option value="">Selecione uma opção</option>
-                    </select>
+                    <label for="q2Select">Com que frequência você sente estresse no trabalho?</label>
+                    <select id="q2Select" required></select>
                 </div>
                 <div class="form-group">
-                    <label for="q3Select">Pergunta 3 - Você tem tempo suficiente para completar suas tarefas?</label>
-                    <select id="q3Select" required>
-                        <option value="">Selecione uma opção</option>
-                    </select>
+                    <label for="q3Select">Você tem tempo suficiente para completar suas tarefas?</label>
+                    <select id="q3Select" required></select>
                 </div>
                 <div class="modal-actions">
-                    <button type="submit" class="btn-primary">Salvar</button>
-                    <button type="button" onclick="closeModal()" class="btn-secondary">Cancelar</button>
+                    <button type="button" onclick="closeModal()">Cancelar</button>
+                    <button type="submit">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
+    <div id="overlay" class="overlay hidden"></div>
 
-    <div id="overlay" class="overlay hidden" onclick="closeModal()"></div>
-
-    <script src="./app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

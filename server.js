@@ -2,7 +2,7 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises; // Usar promises para operações assíncronas
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,13 +17,25 @@ const dbPath = process.env.NODE_ENV === 'production' ? '/app/storage/employees.d
 const storageDir = path.dirname(dbPath);
 
 // Criar diretório storage se não existir
-if (!fs.existsSync(storageDir)) {
-    fs.mkdirSync(storageDir, { recursive: true });
+async function ensureStorageDir() {
+    try {
+        await fs.mkdir(storageDir, { recursive: true });
+        console.log(`Diretório de armazenamento criado/verificado: ${storageDir}`);
+    } catch (error) {
+        console.error(`Erro ao criar diretório de armazenamento ${storageDir}:`, error);
+        process.exit(1); // Encerrar o processo se o diretório não puder ser criado
+    }
 }
 
-const db = new sqlite3.Database(dbPath);
-
 // Inicializar banco de dados
+const db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        console.error('Erro ao conectar ao banco de dados:', err);
+        process.exit(1);
+    }
+    console.log('Conectado ao banco de dados SQLite:', dbPath);
+});
+
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS responses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,16 +44,22 @@ db.serialize(() => {
         q2 TEXT NOT NULL,
         q3 TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+    )`, (err) => {
+        if (err) {
+            console.error('Erro ao criar tabela responses:', err);
+        } else {
+            console.log('Tabela responses criada ou já existente');
+        }
+    });
 });
 
-// Credenciais fixas
+// Credenciais fixas (Nota: Em produção, considere usar variáveis de ambiente ou um sistema de autenticação mais seguro)
 const ADMIN_CREDENTIALS = {
     username: 'caren.santos',
     password: 'Meusfilhos@2'
 };
 
-// Lista de unidades atualizada
+// Lista de unidades
 const UNITS = [
     'Logística', 'Britagem', 'SST', 'Oficina', 'Laboratório'
 ];
@@ -59,6 +77,10 @@ const RESPONSE_OPTIONS = [
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: 'Usuário e senha são obrigatórios' });
+    }
+
     if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
         res.json({ success: true, message: 'Login realizado com sucesso' });
     } else {
@@ -73,15 +95,19 @@ app.get('/api/responses', (req, res) => {
     const params = [];
     
     if (unit) {
+        if (!UNITS.includes(unit)) {
+            return res.status(400).json({ error: `Unidade inválida: ${unit}` });
+        }
         query = 'SELECT * FROM responses WHERE unit = ? ORDER BY created_at DESC';
         params.push(unit);
     }
     
     db.all(query, params, (err, rows) => {
         if (err) {
-            return res.status(500).json({ error: 'Erro ao buscar dados' });
+            console.error('Erro ao buscar respostas:', err);
+            return res.status(500).json({ error: 'Erro interno ao buscar respostas' });
         }
-        res.json(rows);
+        res.json(rows || []);
     });
 });
 
@@ -89,8 +115,16 @@ app.get('/api/responses', (req, res) => {
 app.post('/api/responses', (req, res) => {
     const { unit, q1, q2, q3 } = req.body;
     
-    if (!unit || !UNITS.includes(unit) || !q1 || !q2 || !q3 || !RESPONSE_OPTIONS.includes(q1) || !RESPONSE_OPTIONS.includes(q2) || !RESPONSE_OPTIONS.includes(q3)) {
-        return res.status(400).json({ error: 'Campos inválidos ou unidade não permitida' });
+    if (!unit || !q1 || !q2 || !q3) {
+        return res.status(400).json({ error: 'Todos os campos (unit, q1, q2, q3) são obrigatórios' });
+    }
+
+    if (!UNITS.includes(unit)) {
+        return res.status(400).json({ error: `Unidade inválida: ${unit}` });
+    }
+
+    if (!RESPONSE_OPTIONS.includes(q1) || !RESPONSE_OPTIONS.includes(q2) || !RESPONSE_OPTIONS.includes(q3)) {
+        return res.status(400).json({ error: 'Opções de resposta inválidas' });
     }
     
     db.run(
@@ -98,9 +132,10 @@ app.post('/api/responses', (req, res) => {
         [unit, q1, q2, q3],
         function(err) {
             if (err) {
-                return res.status(500).json({ error: 'Erro ao salvar resposta' });
+                console.error('Erro ao salvar resposta:', err);
+                return res.status(500).json({ error: 'Erro interno ao salvar resposta' });
             }
-            res.status(201).json({ id: this.lastID });
+            res.status(201).json({ id: this.lastID, message: 'Resposta criada com sucesso' });
         }
     );
 });
@@ -110,30 +145,48 @@ app.put('/api/responses/:id', (req, res) => {
     const { id } = req.params;
     const { unit, q1, q2, q3 } = req.body;
     
-    if (!unit || !UNITS.includes(unit) || !q1 || !q2 || !q3 || !RESPONSE_OPTIONS.includes(q1) || !RESPONSE_OPTIONS.includes(q2) || !RESPONSE_OPTIONS.includes(q3)) {
-        return res.status(400).json({ error: 'Campos inválidos ou unidade não permitida' });
+    if (!unit || !q1 || !q2 || !q3) {
+        return res.status(400).json({ error: 'Todos os campos (unit, q1, q2, q3) são obrigatórios' });
+    }
+
+    if (!UNITS.includes(unit)) {
+        return res.status(400).json({ error: `Unidade inválida: ${unit}` });
+    }
+
+    if (!RESPONSE_OPTIONS.includes(q1) || !RESPONSE_OPTIONS.includes(q2) || !RESPONSE_OPTIONS.includes(q3)) {
+        return res.status(400).json({ error: 'Opções de resposta inválidas' });
     }
     
     db.run(
         'UPDATE responses SET unit = ?, q1 = ?, q2 = ?, q3 = ? WHERE id = ?',
         [unit, q1, q2, q3, id],
         function(err) {
-            if (err || this.changes === 0) {
-                return res.status(404).json({ error: 'Resposta não encontrada' });
+            if (err) {
+                console.error('Erro ao atualizar resposta:', err);
+                return res.status(500).json({ error: 'Erro interno ao atualizar resposta' });
             }
-            res.json({ id });
+            if (this.changes === 0) {
+                return res.status(404).json({ error: `Resposta com ID ${id} não encontrada` });
+            }
+            res.json({ id, message: 'Resposta atualizada com sucesso' });
         }
     );
 });
 
 // Excluir resposta
 app.delete('/api/responses/:id', (req, res) => {
+    const { id } = req.params;
+    
     db.run(
         'DELETE FROM responses WHERE id = ?',
-        [req.params.id],
+        [id],
         function(err) {
-            if (err || this.changes === 0) {
-                return res.status(404).json({ error: 'Resposta não encontrada' });
+            if (err) {
+                console.error('Erro ao excluir resposta:', err);
+                return res.status(500).json({ error: 'Erro interno ao excluir resposta' });
+            }
+            if (this.changes === 0) {
+                return res.status(404).json({ error: `Resposta com ID ${id} não encontrada` });
             }
             res.status(204).send();
         }
@@ -145,13 +198,15 @@ app.get('/api/chart-data', (req, res) => {
     // Consulta para dados por unidade
     db.all('SELECT unit, COUNT(*) as count FROM responses GROUP BY unit', [], (err, unitRows) => {
         if (err) {
-            return res.status(500).json({ error: 'Erro ao buscar dados das unidades' });
+            console.error('Erro ao buscar dados das unidades:', err);
+            return res.status(500).json({ error: 'Erro interno ao buscar dados das unidades' });
         }
 
         // Consulta para dados de saúde (baseado em q2 - estresse)
         db.all('SELECT q2 as label, COUNT(*) as value FROM responses GROUP BY q2', [], (err, healthRows) => {
             if (err) {
-                return res.status(500).json({ error: 'Erro ao buscar dados de saúde' });
+                console.error('Erro ao buscar dados de saúde:', err);
+                return res.status(500).json({ error: 'Erro interno ao buscar dados de saúde' });
             }
 
             // Consulta para dados de tendência (últimos 30 dias)
@@ -164,14 +219,15 @@ app.get('/api/chart-data', (req, res) => {
                 [dateFilter],
                 (err, trendRows) => {
                     if (err) {
-                        return res.status(500).json({ error: 'Erro ao buscar dados de tendência' });
+                        console.error('Erro ao buscar dados de tendência:', err);
+                        return res.status(500).json({ error: 'Erro interno ao buscar dados de tendência' });
                     }
 
                     // Montar resposta
                     const chartData = {
-                        unitData: unitRows,
-                        healthData: healthRows,
-                        trendData: trendRows
+                        unitData: unitRows || [],
+                        healthData: healthRows || [],
+                        trendData: trendRows || []
                     };
 
                     res.json(chartData);
@@ -180,9 +236,9 @@ app.get('/api/chart-data', (req, res) => {
         });
     });
 });
-// Adicionar esta rota antes da rota padrão
+
+// Rota para dados de comparação
 app.get('/api/comparison-data', (req, res) => {
-    // Consulta para obter médias por unidade e pergunta
     db.all(`
         SELECT 
             unit,
@@ -206,16 +262,35 @@ app.get('/api/comparison-data', (req, res) => {
         ORDER BY unit
     `, [], (err, rows) => {
         if (err) {
-            return res.status(500).json({ error: 'Erro ao buscar dados de comparação' });
+            console.error('Erro ao buscar dados de comparação:', err);
+            return res.status(500).json({ error: 'Erro interno ao buscar dados de comparação' });
         }
-        res.json(rows);
+        res.json(rows || []);
     });
 });
+
 // Rota padrão
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+// Iniciar servidor
+async function startServer() {
+    await ensureStorageDir();
+    app.listen(PORT, () => {
+        console.log(`Servidor rodando na porta ${PORT}`);
+    });
+}
+
+// Fechar banco de dados ao encerrar o processo
+process.on('SIGINT', () => {
+    db.close((err) => {
+        if (err) {
+            console.error('Erro ao fechar o banco de dados:', err);
+        }
+        console.log('Banco de dados fechado');
+        process.exit(0);
+    });
 });
+
+startServer();
