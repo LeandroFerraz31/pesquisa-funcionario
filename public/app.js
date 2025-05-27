@@ -2,14 +2,87 @@
 const API_BASE = 'http://localhost:3000';
 
 const UNITS = [
-    'Logística', 'Britagem', 'SST', 'Oficina', 'Laboratório'
+    'Logística', 'Britagem', 'SST', 'Oficina', 'Laboratório',
+    'CA', 'F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F9', 'F10', 'F12', 'F14', 'F17', 'F18'
 ];
-const RESPONSE_OPTIONS = [
-    'NUNCA/QUASE NUNCA',
-    'RARAMENTE',
-    'ÀS VEZES',
-    'FREQUENTEMENTE',
-    'SEMPRE'
+
+// Opções de resposta para cada pergunta
+const RESPONSE_OPTIONS = {
+    default: [
+        'NUNCA/QUASE NUNCA',
+        'RARAMENTE',
+        'ÀS VEZES',
+        'FREQUENTEMENTE',
+        'SEMPRE'
+    ],
+    health: [
+        'EXCELENTE',
+        'MUITO BOA',
+        'BOA',
+        'RAZOÁVEL',
+        'DEFICITÁRIA'
+    ],
+    impact: [
+        'NUNCA/QUASE NUNCA',
+        'UM POUCO',
+        'MODERADAMENTE',
+        'MUITO',
+        'EXTREMAMENTE'
+    ]
+};
+
+// Mapeamento das perguntas para suas opções de resposta
+const QUESTION_OPTIONS = {
+    q28Select: 'health', // "Em geral sente que a sua saúde é"
+    q29Select: 'impact', // "Sente que o seu trabalho lhe exige muita energia..."
+    q30Select: 'impact', // "Sente que o seu trabalho lhe exige muito tempo..."
+    default: 'default'   // Todas as outras perguntas usam a escala padrão
+};
+
+// Mapeamento das perguntas para exibição
+const QUESTION_LABELS = [
+    'A sua carga de trabalho acumula-se por ser mal distribuída?',
+    'Com que frequência não tem tempo para completar todas as tarefas do seu trabalho?',
+    'Carga de trabalho mal distribuída',
+    'Falta de tempo para tarefas',
+    'Precisa trabalhar rapidamente',
+    'Exige atenção constante',
+    'Toma decisões difíceis',
+    'Exige emocionalmente',
+    'Exige iniciativa',
+    'Permite aprender coisas novas',
+    'Informado sobre decisões',
+    'Recebe informações necessárias',
+    'Sabe suas responsabilidades',
+    'Trabalho reconhecido pela gerência',
+    'Tratado de forma justa',
+    'Ajuda do superior imediato',
+    'Bom ambiente com colegas',
+    'Oportunidades de desenvolvimento',
+    'Bom no planejamento do trabalho',
+    'Confiança da gerência',
+    'Confia nas informações da gerência',
+    'Conflitos resolvidos justamente',
+    'Trabalho igualmente distribuído',
+    'Capaz de resolver problemas',
+    'Trabalho tem significado',
+    'Sente que o trabalho é importante',
+    'Problemas do trabalho são seus',
+    'Satisfação geral com o trabalho',
+    'Preocupação com desemprego',
+    'Estado geral da saúde',
+    'Trabalho afeta vida privada (energia)',
+    'Trabalho afeta vida privada (tempo)',
+    'Acorda várias vezes à noite',
+    'Fisicamente exausto',
+    'Emocionalmente exausto',
+    'Irritado',
+    'Ansioso',
+    'Triste',
+    'Alvo de insultos/provocações',
+    'Exposto a assédio sexual',
+    'Exposto a ameaças de violência',
+    'Exposto a violência física'
 ];
 
 // Variáveis globais
@@ -133,6 +206,7 @@ function initializeApp() {
 }
 
 function populateSelects() {
+    // Preencher select de unidades
     const unitSelects = [document.getElementById('unitSelect'), document.getElementById('unitFilter')];
     unitSelects.forEach(select => {
         if (select) {
@@ -145,18 +219,21 @@ function populateSelects() {
         }
     });
 
-    const responseSelects = ['q1Select', 'q2Select', 'q3Select'];
-    responseSelects.forEach(selectId => {
+    // Preencher selects de respostas (q1 a q40)
+    for (let i = 1; i <= 40; i++) {
+        const selectId = `q${i}Select`;
         const select = document.getElementById(selectId);
         if (select) {
-            RESPONSE_OPTIONS.forEach(option => {
+            const optionType = QUESTION_OPTIONS[selectId] || QUESTION_OPTIONS.default;
+            const options = RESPONSE_OPTIONS[optionType];
+            options.forEach(option => {
                 const optionElement = document.createElement('option');
                 optionElement.value = option;
                 optionElement.textContent = option;
                 select.appendChild(optionElement);
             });
         }
-    });
+    }
 }
 
 function setupEventListeners() {
@@ -611,24 +688,26 @@ function displayResponses(responses) {
         const date = new Date(response.created_at);
         const formattedDate = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
 
+        let detailsHtml = '';
+        for (let i = 1; i <= 40; i++) {
+            const answer = response[`q${i}`];
+            if (answer) { // Verifica se a resposta existe
+                detailsHtml += `
+                    <div class="response-item">
+                        <div class="response-question">${QUESTION_LABELS[i - 1]}</div>
+                        <div class="response-answer" data-answer="${answer}">${answer}</div>
+                    </div>
+                `;
+            }
+        }
+
         card.innerHTML = `
             <div class="response-header">
                 <div class="response-unit">${response.unit}</div>
                 <div class="response-date">${formattedDate}</div>
             </div>
             <div class="response-details">
-                <div class="response-item">
-                    <div class="response-question">Como você avalia sua carga de trabalho?</div>
-                    <div class="response-answer" data-answer="${response.q1}">${response.q1}</div>
-                </div>
-                <div class="response-item">
-                    <div class="response-question">Com que frequência você sente estresse no trabalho?</div>
-                    <div class="response-answer" data-answer="${response.q2}">${response.q2}</div>
-                </div>
-                <div class="response-item">
-                    <div class="response-question">Você tem tempo suficiente para completar suas tarefas?</div>
-                    <div class="response-answer" data-answer="${response.q3}">${response.q3}</div>
-                </div>
+                ${detailsHtml}
             </div>
             <div class="response-actions">
                 <button onclick="editResponse(${response.id})" class="btn-edit" aria-label="Editar resposta ${response.id}">Editar</button>
@@ -671,35 +750,48 @@ function filterResponses() {
 
 function showAddForm() {
     document.getElementById('modalTitle').textContent = 'Nova Pesquisa';
-    document.getElementById('responseForm').reset();
     document.getElementById('responseId').value = '';
-    showModal();
+    document.getElementById('responseForm').reset();
+    document.getElementById('responseModal').classList.remove('hidden');
 }
 
-async function editResponse(id) {
-    try {
-        const response = await fetch(`${API_BASE}/api/responses`);
-        const data = await response.json();
 
-        const targetResponse = data.find(r => r.id === id);
-        if (!targetResponse) {
-            showFeedback('Resposta não encontrada.', true);
-            return;
-        }
+function editResponse(id) {
+    const response = currentResponses.find(r => r.id === id);
+    if (!response) return;
 
-        document.getElementById('modalTitle').textContent = 'Editar Pesquisa';
-        document.getElementById('responseId').value = targetResponse.id;
-        document.getElementById('unitSelect').value = targetResponse.unit;
-        document.getElementById('q1Select').value = targetResponse.q1;
-        document.getElementById('q2Select').value = targetResponse.q2;
-        document.getElementById('q3Select').value = targetResponse.q3;
+    document.getElementById('modalTitle').textContent = 'Editar Pesquisa';
+    document.getElementById('responseId').value = response.id;
+    document.getElementById('unitSelect').value = response.unit;
 
-        showModal();
-    } catch (error) {
-        showFeedback('Erro ao carregar resposta para edição.', true);
-        console.error('Erro:', error);
+    for (let i = 1; i <= 40; i++) {
+        const select = document.getElementById(`q${i}Select`);
+        if (select) select.value = response[`q${i}`];
     }
+
+    document.getElementById('responseModal').classList.remove('hidden');
 }
+
+function deleteResponse(id) {
+    if (!confirm('Tem certeza que deseja excluir esta resposta?')) return;
+
+    fetch(`${API_BASE}/api/responses/${id}`, { method: 'DELETE' })
+        .then(response => {
+            if (response.status === 204) {
+                showFeedback('Resposta excluída com sucesso', false);
+                loadResponses(); // recarregar a lista
+            } else {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Erro ao excluir resposta');
+                });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showFeedback('Erro ao excluir resposta.');
+        });
+}
+
 
 async function deleteResponse(id) {
     if (!confirm('Tem certeza que deseja excluir esta resposta?')) {
@@ -739,17 +831,19 @@ async function handleResponseSubmit(e) {
     e.preventDefault();
 
     const unit = document.getElementById('unitSelect').value;
-    const q1 = document.getElementById('q1Select').value;
-    const q2 = document.getElementById('q2Select').value;
-    const q3 = document.getElementById('q3Select').value;
-    const responseId = document.getElementById('responseId').value;
+    const formData = { unit };
 
-    if (!unit || !q1 || !q2 || !q3) {
-        showFeedback('Preencha todos os campos obrigatórios.', true);
-        return;
+    // Coletar valores de todos os 40 selects
+    for (let i = 1; i <= 40; i++) {
+        const select = document.getElementById(`q${i}Select`);
+        if (!select.value) {
+            showFeedback(`Preencha a pergunta ${i}.`, true);
+            return;
+        }
+        formData[`q${i}`] = select.value;
     }
 
-    const formData = { unit, q1, q2, q3 };
+    const responseId = document.getElementById('responseId').value;
     const isEdit = responseId !== '';
     const url = isEdit
         ? `${API_BASE}/api/responses/${responseId}`

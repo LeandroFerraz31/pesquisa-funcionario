@@ -37,14 +37,14 @@ const db = new sqlite3.Database(dbPath, (err) => {
 });
 
 db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS responses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        unit TEXT NOT NULL,
-        q1 TEXT NOT NULL,
-        q2 TEXT NOT NULL,
-        q3 TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
+    // Modificado: Criar tabela com colunas q1 a q40
+    const columns = ['id INTEGER PRIMARY KEY AUTOINCREMENT', 'unit TEXT NOT NULL'];
+    for (let i = 1; i <= 40; i++) {
+        columns.push(`q${i} TEXT NOT NULL`);
+    }
+    columns.push('created_at DATETIME DEFAULT CURRENT_TIMESTAMP');
+    const createTableQuery = `CREATE TABLE IF NOT EXISTS responses (${columns.join(', ')})`;
+    db.run(createTableQuery, (err) => {
         if (err) {
             console.error('Erro ao criar tabela responses:', err);
         } else {
@@ -53,7 +53,7 @@ db.serialize(() => {
     });
 });
 
-// Credenciais fixas (Nota: Em produção, considere usar variáveis de ambiente ou um sistema de autenticação mais seguro)
+// Credenciais fixas
 const ADMIN_CREDENTIALS = {
     username: 'caren.santos',
     password: 'Meusfilhos@2'
@@ -61,17 +61,42 @@ const ADMIN_CREDENTIALS = {
 
 // Lista de unidades
 const UNITS = [
-    'Logística', 'Britagem', 'SST', 'Oficina', 'Laboratório'
+    'Logística', 'Britagem', 'SST', 'Oficina', 'Laboratório',
+    'CA', 'F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F9', 'F10', 'F12', 'F14', 'F17', 'F18'
 ];
 
 // Opções de resposta
-const RESPONSE_OPTIONS = [
-    'NUNCA/QUASE NUNCA',
-    'RARAMENTE',
-    'ÀS VEZES',
-    'FREQUENTEMENTE',
-    'SEMPRE'
-];
+const RESPONSE_OPTIONS = {
+    default: [
+        'NUNCA/QUASE NUNCA',
+        'RARAMENTE',
+        'ÀS VEZES',
+        'FREQUENTEMENTE',
+        'SEMPRE'
+    ],
+    health: [
+        'EXCELENTE',
+        'MUITO BOA',
+        'BOA',
+        'RAZOÁVEL',
+        'DEFICITÁRIA'
+    ],
+    impact: [
+        'NUNCA/QUASE NUNCA',
+        'UM POUCO',
+        'MODERADAMENTE',
+        'MUITO',
+        'EXTREMAMENTE'
+    ]
+};
+
+// Mapeamento das perguntas para suas opções de resposta
+const QUESTION_OPTIONS = {
+    q28Select: 'health', // "Em geral sente que a sua saúde é"
+    q29Select: 'impact', // "Sente que o seu trabalho lhe exige muita energia..."
+    q30Select: 'impact', // "Sente que o seu trabalho lhe exige muito tempo..."
+    default: 'default'   // Todas as outras perguntas usam a escala padrão
+};
 
 // Rota de login
 app.post('/api/login', (req, res) => {
@@ -113,64 +138,83 @@ app.get('/api/responses', (req, res) => {
 
 // Criar nova resposta
 app.post('/api/responses', (req, res) => {
-    const { unit, q1, q2, q3 } = req.body;
+    const data = req.body;
     
-    if (!unit || !q1 || !q2 || !q3) {
-        return res.status(400).json({ error: 'Todos os campos (unit, q1, q2, q3) são obrigatórios' });
+    // Validar unit e q1 a q40
+    const requiredFields = ['unit'].concat(Array.from({length: 40}, (_, i) => `q${i+1}`));
+    const missingFields = requiredFields.filter(field => !data[field]);
+    if (missingFields.length > 0) {
+        return res.status(400).json({ error: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
     }
 
-    if (!UNITS.includes(unit)) {
-        return res.status(400).json({ error: `Unidade inválida: ${unit}` });
+    if (!UNITS.includes(data.unit)) {
+        return res.status(400).json({ error: `Unidade inválida: ${data.unit}` });
     }
 
-    if (!RESPONSE_OPTIONS.includes(q1) || !RESPONSE_OPTIONS.includes(q2) || !RESPONSE_OPTIONS.includes(q3)) {
-        return res.status(400).json({ error: 'Opções de resposta inválidas' });
-    }
-    
-    db.run(
-        'INSERT INTO responses (unit, q1, q2, q3) VALUES (?, ?, ?, ?)',
-        [unit, q1, q2, q3],
-        function(err) {
-            if (err) {
-                console.error('Erro ao salvar resposta:', err);
-                return res.status(500).json({ error: 'Erro interno ao salvar resposta' });
-            }
-            res.status(201).json({ id: this.lastID, message: 'Resposta criada com sucesso' });
+    // Validar opções de resposta
+    for (let i = 1; i <= 40; i++) {
+        const q = `q${i}`;
+        const options = QUESTION_OPTIONS[q] || QUESTION_OPTIONS.default;
+        if (!options.includes(data[q])) {
+            return res.status(400).json({ error: `Resposta inválida para ${q}: ${data[q]}` });
         }
-    );
+    }
+    
+    // Inserir q1 a q40
+    const fields = requiredFields;
+    const placeholders = fields.map(() => '?').join(', ');
+    const values = fields.map(field => data[field]);
+    const query = `INSERT INTO responses (${fields.join(', ')}) VALUES (${placeholders})`;
+
+    db.run(query, values, function(err) {
+        if (err) {
+            console.error('Erro ao salvar resposta:', err);
+            return res.status(500).json({ error: 'Erro interno ao salvar resposta' });
+        }
+        res.status(201).json({ id: this.lastID, message: 'Resposta criada com sucesso' });
+    });
 });
 
 // Editar resposta
 app.put('/api/responses/:id', (req, res) => {
     const { id } = req.params;
-    const { unit, q1, q2, q3 } = req.body;
+    const data = req.body;
     
-    if (!unit || !q1 || !q2 || !q3) {
-        return res.status(400).json({ error: 'Todos os campos (unit, q1, q2, q3) são obrigatórios' });
+    // Modificado: Validar unit e q1 a q40
+    const requiredFields = ['unit'].concat(Array.from({length: 40}, (_, i) => `q${i+1}`));
+    const missingFields = requiredFields.filter(field => !data[field]);
+    if (missingFields.length > 0) {
+        return res.status(400).json({ error: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
     }
 
-    if (!UNITS.includes(unit)) {
-        return res.status(400).json({ error: `Unidade inválida: ${unit}` });
+    if (!UNITS.includes(data.unit)) {
+        return res.status(400).json({ error: `Unidade inválida: ${data.unit}` });
     }
 
-    if (!RESPONSE_OPTIONS.includes(q1) || !RESPONSE_OPTIONS.includes(q2) || !RESPONSE_OPTIONS.includes(q3)) {
-        return res.status(400).json({ error: 'Opções de resposta inválidas' });
-    }
-    
-    db.run(
-        'UPDATE responses SET unit = ?, q1 = ?, q2 = ?, q3 = ? WHERE id = ?',
-        [unit, q1, q2, q3, id],
-        function(err) {
-            if (err) {
-                console.error('Erro ao atualizar resposta:', err);
-                return res.status(500).json({ error: 'Erro interno ao atualizar resposta' });
-            }
-            if (this.changes === 0) {
-                return res.status(404).json({ error: `Resposta com ID ${id} não encontrada` });
-            }
-            res.json({ id, message: 'Resposta atualizada com sucesso' });
+    // Validar opções de resposta
+    for (let i = 1; i <= 40; i++) {
+        const q = `q${i}`;
+        const options = QUESTION_OPTIONS[q] || QUESTION_OPTIONS.default;
+        if (!options.includes(data[q])) {
+            return res.status(400).json({ error: `Resposta inválida para ${q}: ${data[q]}` });
         }
-    );
+    }
+    
+    // Modificado: Atualizar q1 a q40
+    const updates = requiredFields.map(field => `${field} = ?`).join(', ');
+    const values = requiredFields.map(field => data[field]).concat([id]);
+    const query = `UPDATE responses SET ${updates} WHERE id = ?`;
+
+    db.run(query, values, function(err) {
+        if (err) {
+            console.error('Erro ao atualizar resposta:', err);
+            return res.status(500).json({ error: 'Erro interno ao atualizar resposta' });
+        }
+        if (this.changes === 0) {
+            return res.status(404).json({ error: `Resposta com ID ${id} não encontrada` });
+        }
+        res.json({ id, message: 'Resposta atualizada com sucesso' });
+    });
 });
 
 // Excluir resposta
@@ -202,8 +246,8 @@ app.get('/api/chart-data', (req, res) => {
             return res.status(500).json({ error: 'Erro interno ao buscar dados das unidades' });
         }
 
-        // Consulta para dados de saúde (baseado em q2 - estresse)
-        db.all('SELECT q2 as label, COUNT(*) as value FROM responses GROUP BY q2', [], (err, healthRows) => {
+        // Modificado: Usar q28 para dados de saúde
+        db.all('SELECT q28 as label, COUNT(*) as value FROM responses GROUP BY q28', [], (err, healthRows) => {
             if (err) {
                 console.error('Erro ao buscar dados de saúde:', err);
                 return res.status(500).json({ error: 'Erro interno ao buscar dados de saúde' });
@@ -239,33 +283,51 @@ app.get('/api/chart-data', (req, res) => {
 
 // Rota para dados de comparação
 app.get('/api/comparison-data', (req, res) => {
-    db.all(`
-        SELECT 
-            unit,
-            AVG(CASE WHEN q1 = 'NUNCA/QUASE NUNCA' THEN 1
-                     WHEN q1 = 'RARAMENTE' THEN 2
-                     WHEN q1 = 'ÀS VEZES' THEN 3
-                     WHEN q1 = 'FREQUENTEMENTE' THEN 4
-                     WHEN q1 = 'SEMPRE' THEN 5 END) as q1_avg,
-            AVG(CASE WHEN q2 = 'NUNCA/QUASE NUNCA' THEN 1
-                     WHEN q2 = 'RARAMENTE' THEN 2
-                     WHEN q2 = 'ÀS VEZES' THEN 3
-                     WHEN q2 = 'FREQUENTEMENTE' THEN 4
-                     WHEN q2 = 'SEMPRE' THEN 5 END) as q2_avg,
-            AVG(CASE WHEN q3 = 'NUNCA/QUASE NUNCA' THEN 1
-                     WHEN q3 = 'RARAMENTE' THEN 2
-                     WHEN q3 = 'ÀS VEZES' THEN 3
-                     WHEN q3 = 'FREQUENTEMENTE' THEN 4
-                     WHEN q3 = 'SEMPRE' THEN 5 END) as q3_avg
+    // Modificado: Calcular médias para q1 a q40, mas retornar apenas q1, q2, q3 para gráficos
+    const responseValues = {
+        'NUNCA/QUASE NUNCA': 1,
+        'RARAMENTE': 2,
+        'ÀS VEZES': 3,
+        'FREQUENTEMENTE': 4,
+        'SEMPRE': 5,
+        'EXCELENTE': 5,
+        'MUITO BOA': 4,
+        'BOA': 3,
+        'RAZOÁVEL': 2,
+        'DEFICITÁRIA': 1,
+        'UM POUCO': 2,
+        'MODERADAMENTE': 3,
+        'MUITO': 4,
+        'EXTREMAMENTE': 5
+    };
+
+    const caseStatements = Array.from({length: 40}, (_, i) => {
+        const q = `q${i+1}`;
+        return `AVG(CASE
+            ${Object.entries(responseValues).map(([key, value]) => `WHEN ${q} = '${key}' THEN ${value}`).join(' ')}
+            ELSE 0 END) as ${q}_avg`;
+    }).join(', ');
+
+    const query = `
+        SELECT unit, ${caseStatements}
         FROM responses
         GROUP BY unit
         ORDER BY unit
-    `, [], (err, rows) => {
+    `;
+
+    db.all(query, [], (err, rows) => {
         if (err) {
             console.error('Erro ao buscar dados de comparação:', err);
             return res.status(500).json({ error: 'Erro interno ao buscar dados de comparação' });
         }
-        res.json(rows || []);
+        // Filtrar apenas q1, q2, q3 para compatibilidade com os gráficos
+        const filteredRows = rows.map(row => ({
+            unit: row.unit,
+            q1_avg: row.q1_avg,
+            q2_avg: row.q2_avg,
+            q3_avg: row.q3_avg
+        }));
+        res.json(filteredRows || []);
     });
 });
 
