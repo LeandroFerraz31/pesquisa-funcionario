@@ -1,5 +1,10 @@
 // Configuração global
-const API_BASE = 'http://localhost:3000';
+const API_BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:80'
+    : '';
+
+console.log('Hostname:', window.location.hostname);
+console.log('API_BASE_URL definido como:', API_BASE_URL);
 
 const UNITS = [
     'Logística', 'Britagem', 'SST', 'Oficina', 'Laboratório',
@@ -353,6 +358,10 @@ async function loadDashboardData() {
             fetch(`${API_BASE}/api/comparison-data`)
         ]);
 
+        if (!chartResponse.ok || !comparisonResponse.ok) {
+            throw new Error('Erro HTTP ao carregar os dados');
+        }
+
         const chartData = await chartResponse.json();
         const comparisonData = await comparisonResponse.json();
 
@@ -365,8 +374,10 @@ async function loadDashboardData() {
         updateUnitsList(chartData.unitData);
     } catch (error) {
         console.error('Erro ao carregar dashboard:', error);
+        showFeedback('Erro ao carregar dados do painel. Verifique se há respostas registradas.', true);
     }
 }
+
 
 function createCharts(chartData, comparisonData) {
     Object.values(charts).forEach(chart => {

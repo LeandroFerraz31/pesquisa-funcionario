@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs').promises; // Usar promises para operações assíncronas
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 
 // Middleware
 app.use(cors({ origin: '*' }));
@@ -52,6 +52,21 @@ db.serialize(() => {
         }
     });
 });
+
+db.get('SELECT COUNT(*) as total FROM responses', [], (err, row) => {
+    if (err) return console.error('Erro ao verificar registros iniciais:', err);
+
+    if (row.total === 0) {
+        const unit = 'Logística';
+        const values = Array.from({ length: 40 }, () => 'ÀS VEZES');
+        const query = `INSERT INTO responses (unit, ${values.map((_, i) => `q${i + 1}`).join(', ')}) VALUES (?, ${values.map(() => '?').join(', ')})`;
+        db.run(query, [unit, ...values], (err) => {
+            if (err) console.error('Erro ao inserir resposta de teste:', err);
+            else console.log('Resposta de teste inserida com sucesso');
+        });
+    }
+});
+
 
 // Credenciais fixas
 const ADMIN_CREDENTIALS = {
