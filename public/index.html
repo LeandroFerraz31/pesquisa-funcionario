@@ -83,468 +83,180 @@
     <div id="responseModal" class="modal hidden">
         <div class="modal-content">
             <h3 id="modalTitle">Nova Pesquisa</h3>
-            <form id="responseForm">
-                <input type="hidden" id="responseId">
-                <div class="form-group">
-                    <label for="unitSelect">Unidade</label>
-                    <select id="unitSelect" name="unit" required>
-                        <option value="" disabled selected>Selecione a unidade</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q1Select">A sua carga de trabalho acumula-se por ser mal distribuída?</label>
-                    <select id="q1Select" name="q1" required>
-                        <option value="" disabled selected>Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="q2Select">Com que frequência não tem tempo para completar todas as tarefas do seu
-                        trabalho?</label>
-                    <select id="q2Select" name="q2" required>
-                        <option value="" disabled selected>Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q3Select">Precisa trabalhar muito rapidamente?</label>
-                    <select id="q3Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q4Select">O seu trabalho exige a sua atenção constante?</label>
-                    <select id="q4Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q5Select">O seu trabalho exige que tome decisões difíceis?</label>
-                    <select id="q5Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q6Select">O seu trabalho exige emocionalmente de si?</label>
-                    <select id="q6Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q7Select">O seu trabalho exige que tenha iniciativa?</label>
-                    <select id="q7Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q8Select">O seu trabalho permite-lhe aprender coisas novas?</label>
-                    <select id="q8Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q9Select">No seu local de trabalho, é informado com antecedência sobre decisões
-                        importantes, mudanças ou planos para o futuro?</label>
-                    <select id="q9Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q10Select">Recebe toda a informação de que necessita para fazer bem o seu
-                        trabalho?</label>
-                    <select id="q10Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q11Select">Sabe exatamente quais as suas responsabilidades?</label>
-                    <select id="q11Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q12Select">O seu trabalho é reconhecido e apreciado pela gerência?</label>
-                    <select id="q12Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q13Select">É tratado de forma justa no seu local de trabalho?</label>
-                    <select id="q13Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q14Select">Com que frequência tem ajuda e apoio do seu superior imediato?</label>
-                    <select id="q14Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q15Select">Existe um bom ambiente de trabalho entre si e os seus colegas?</label>
-                    <select id="q15Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q16Select">Oferece aos indivíduos e ao grupo boas oportunidades de
-                        desenvolvimento?</label>
-                    <select id="q16Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q17Select">É bom no planejamento do trabalho?</label>
-                    <select id="q17Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q18Select">A gerência confia nos seus funcionários para fazer o seu trabalho
-                        bem?</label>
-                    <select id="q18Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q19Select">Confia na informação que lhe é transmitida pela gerência?</label>
-                    <select id="q19Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q20Select">Os conflitos são resolvidos de uma forma justa?</label>
-                    <select id="q20Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q21Select">O trabalho é igualmente distribuído pelos funcionários?</label>
-                    <select id="q21Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q22Select">Sou sempre capaz de resolver problemas, se tentar o suficiente.</label>
-                    <select id="q22Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q23Select">O seu trabalho tem algum significado para si?</label>
-                    <select id="q23Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q24Select">Sente que o seu trabalho é importante?</label>
-                    <select id="q24Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q25Select">Sente que os problemas do seu local de trabalho são seus também?</label>
-                    <select id="q25Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q26Select">Quão satisfeito está com o seu trabalho de uma forma global?</label>
-                    <select id="q26Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q27Select">Sente-se preocupado em ficar desempregado?</label>
-                    <select id="q27Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q28Select">Em geral sente que a sua saúde é:</label>
-                    <select id="q28Select" required>
-                        <option value="">Selecione</option>
-                        <option value="EXCELENTE">EXCELENTE</option>
-                        <option value="MUITO BOA">MUITO BOA</option>
-                        <option value="BOA">BOA</option>
-                        <option value="RAZOÁVEL">RAZOÁVEL</option>
-                        <option value="DEFICITÁRIA">DEFICITÁRIA</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q29Select">Sente que o seu trabalho lhe exige muita energia que acaba por afetar a sua
-                        vida privada negativamente?</label>
-                    <select id="q29Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="UM POUCO">UM POUCO</option>
-                        <option value="MODERADAMENTE">MODERADAMENTE</option>
-                        <option value="MUITO">MUITO</option>
-                        <option value="EXTREMAMENTE">EXTREMAMENTE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q30Select">Sente que o seu trabalho lhe exige muito tempo que acaba por afetar a sua
-                        vida privada negativamente?</label>
-                    <select id="q30Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="UM POUCO">UM POUCO</option>
-                        <option value="MODERADAMENTE">MODERADAMENTE</option>
-                        <option value="MUITO">MUITO</option>
-                        <option value="EXTREMAMENTE">EXTREMAMENTE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q31Select">Acordou várias vezes durante a noite e depois não conseguia adormecer
-                        novamente?</label>
-                    <select id="q31Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q32Select">Fisicamente exausto?</label>
-                    <select id="q32Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q33Select">Emocionalmente exausto?</label>
-                    <select id="q33Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q34Select">Irritado?</label>
-                    <select id="q34Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q35Select">Ansioso?</label>
-                    <select id="q35Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q36Select">Triste?</label>
-                    <select id="q36Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q37Select">Tem sido alvo de insultos ou provocações verbais?</label>
-                    <select id="q37Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q38Select">Tem sido exposto a assédio sexual indesejado?</label>
-                    <select id="q38Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q39Select">Tem sido exposto a ameaças de violência?</label>
-                    <select id="q39Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="q40Select">Tem sido exposto a violência física?</label>
-                    <select id="q40Select" required>
-                        <option value="">Selecione</option>
-                        <option value="NUNCA/QUASE NUNCA">NUNCA/QUASE NUNCA</option>
-                        <option value="RARAMENTE">RARAMENTE</option>
-                        <option value="ÀS VEZES">ÀS VEZES</option>
-                        <option value="FREQUENTEMENTE">FREQUENTEMENTE</option>
-                        <option value="SEMPRE">SEMPRE</option>
-                    </select>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" onclick="closeModal()">Cancelar</button>
-                    <button type="submit">Salvar</button>
-                </div>
-            </form>
+            
+               <form id="responseForm">
+    <input type="hidden" id="responseId">
+    <div class="form-group">
+        <label for="unitSelect">Unidade</label>
+        <select id="unitSelect" name="unit">
+            <option value="">Selecione a unidade</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="q1Select">A sua carga de trabalho acumula-se por ser mal distribuída?</label>
+        <select id="q1Select" name="q1"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q2Select">Com que frequência não tem tempo para completar todas as tarefas do seu trabalho?</label>
+        <select id="q2Select" name="q2"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q3Select">Precisa trabalhar muito rapidamente?</label>
+        <select id="q3Select" name="q3"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q4Select">O seu trabalho exige a sua atenção constante?</label>
+        <select id="q4Select" name="q4"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q5Select">O seu trabalho exige que tome decisões difíceis?</label>
+        <select id="q5Select" name="q5"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q6Select">O seu trabalho exige emocionalmente de si?</label>
+        <select id="q6Select" name="q6"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q7Select">O seu trabalho exige que tenha iniciativa?</label>
+        <select id="q7Select" name="q7"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q8Select">O seu trabalho permite-lhe aprender coisas novas?</label>
+        <select id="q8Select" name="q8"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q9Select">No seu local de trabalho, é informado com antecedência sobre decisões importantes, mudanças ou planos para o futuro?</label>
+        <select id="q9Select" name="q9"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q10Select">Recebe toda a informação de que necessita para fazer bem o seu trabalho?</label>
+        <select id="q10Select" name="q10"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q11Select">Sabe exatamente quais as suas responsabilidades?</label>
+        <select id="q11Select" name="q11"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q12Select">O seu trabalho é reconhecido e apreciado pela gerência?</label>
+        <select id="q12Select" name="q12"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q13Select">É tratado de forma justa no seu local de trabalho?</label>
+        <select id="q13Select" name="q13"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q14Select">Com que frequência tem ajuda e apoio do seu superior imediato?</label>
+        <select id="q14Select" name="q14"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q15Select">Existe um bom ambiente de trabalho entre si e os seus colegas?</label>
+        <select id="q15Select" name="q15"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q16Select">Oferece aos indivíduos e ao grupo boas oportunidades de desenvolvimento?</label>
+        <select id="q16Select" name="q16"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q17Select">É bom no planejamento do trabalho?</label>
+        <select id="q17Select" name="q17"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q18Select">A gerência confia nos seus funcionários para fazer o seu trabalho bem?</label>
+        <select id="q18Select" name="q18"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q19Select">Confia na informação que lhe é transmitida pela gerência?</label>
+        <select id="q19Select" name="q19"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q20Select">Os conflitos são resolvidos de uma forma justa?</label>
+        <select id="q20Select" name="q20"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q21Select">O trabalho é igualmente distribuído pelos funcionários?</label>
+        <select id="q21Select" name="q21"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q22Select">Sou sempre capaz de resolver problemas, se tentar o suficiente.</label>
+        <select id="q22Select" name="q22"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q23Select">O seu trabalho tem algum significado para si?</label>
+        <select id="q23Select" name="q23"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q24Select">Sente que o seu trabalho é importante?</label>
+        <select id="q24Select" name="q24"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q25Select">Sente que os problemas do seu local de trabalho são seus também?</label>
+        <select id="q25Select" name="q25"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q26Select">Quão satisfeito está com o seu trabalho de uma forma global?</label>
+        <select id="q26Select" name="q26"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q27Select">Sente-se preocupado em ficar desempregado?</label>
+        <select id="q27Select" name="q27"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q28Select">Em geral sente que a sua saúde é:</label>
+        <select id="q28Select" name="q28"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q29Select">Sente que o seu trabalho lhe exige muita energia que acaba por afetar a sua vida privada negativamente?</label>
+        <select id="q29Select" name="q29"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q30Select">Sente que o seu trabalho lhe exige muito tempo que acaba por afetar a sua vida privada negativamente?</label>
+        <select id="q30Select" name="q30"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q31Select">Acordou várias vezes durante a noite e depois não conseguia adormecer novamente?</label>
+        <select id="q31Select" name="q31"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q32Select">Fisicamente exausto?</label>
+        <select id="q32Select" name="q32"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q33Select">Emocionalmente exausto?</label>
+        <select id="q33Select" name="q33"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q34Select">Irritado?</label>
+        <select id="q34Select" name="q34"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q35Select">Ansioso?</label>
+        <select id="q35Select" name="q35"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q36Select">Triste?</label>
+        <select id="q36Select" name="q36"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q37Select">Tem sido alvo de insultos ou provocações verbais?</label>
+        <select id="q37Select" name="q37"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q38Select">Tem sido exposto a assédio sexual indesejado?</label>
+        <select id="q38Select" name="q38"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q39Select">Tem sido exposto a ameaças de violência?</label>
+        <select id="q39Select" name="q39"><option value="">Selecione</option></select>
+    </div>
+    <div class="form-group">
+        <label for="q40Select">Tem sido exposto a violência física?</label>
+        <select id="q40Select" name="q40"><option value="">Selecione</option></select>
+    </div>
+    <div class="modal-actions">
+        <button type="button" onclick="closeModal()">Cancelar</button>
+        <button type="submit">Salvar</button>
+    </div>
+</form>
         </div>
         <div id="overlay" class="overlay hidden"></div>
 

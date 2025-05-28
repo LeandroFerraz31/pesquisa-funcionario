@@ -74,13 +74,12 @@ const ADMIN_CREDENTIALS = {
     password: 'Meusfilhos@2'
 };
 
-// Lista de unidades
+// Mapeamento das opções de resposta
 const UNITS = [
     'Logística', 'Britagem', 'SST', 'Oficina', 'Laboratório',
     'CA', 'F1', 'F2', 'F3', 'F5', 'F6', 'F7', 'F9', 'F10', 'F12', 'F14', 'F17', 'F18'
 ];
 
-// Opções de resposta
 const RESPONSE_OPTIONS = {
     default: [
         'NUNCA/QUASE NUNCA',
@@ -107,56 +106,42 @@ const RESPONSE_OPTIONS = {
 
 // Mapeamento das perguntas para suas opções de resposta
 const QUESTION_OPTIONS = {
-    q28Select: 'health', // "Em geral sente que a sua saúde é"
-    q29Select: 'impact', // "Sente que o seu trabalho lhe exige muita energia..."
-    q30Select: 'impact', // "Sente que o seu trabalho lhe exige muito tempo..."
-    default: 'default'   // Todas as outras perguntas usam a escala padrão
+    q28: 'health',
+    q29: 'impact',
+    q30: 'impact',
+    default: 'default'
 };
 
-// Rota de login
+// Rota para criar nova resposta
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    
+
     if (!username || !password) {
-        return res.status(400).json({ success: false, message: 'Usuário e senha são obrigatórios' });
+        return res.status(400).json({ success: false, message: 'Usuário e senha são obrigatórios.' });
     }
 
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-        res.json({ success: true, message: 'Login realizado com sucesso' });
-    } else {
-        res.status(401).json({ success: false, message: 'Credenciais inválidas' });
-    }
-});
-
-// Obter todas as respostas ou filtrar por unidade
-app.get('/api/responses', (req, res) => {
-    const { unit } = req.query;
-    let query = 'SELECT * FROM responses ORDER BY created_at DESC';
-    const params = [];
-    
-    if (unit) {
-        if (!UNITS.includes(unit)) {
-            return res.status(400).json({ error: `Unidade inválida: ${unit}` });
-        }
-        query = 'SELECT * FROM responses WHERE unit = ? ORDER BY created_at DESC';
-        params.push(unit);
-    }
-    
-    db.all(query, params, (err, rows) => {
+    const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
+    db.get(query, [username, password], (err, user) => {
         if (err) {
-            console.error('Erro ao buscar respostas:', err);
-            return res.status(500).json({ error: 'Erro interno ao buscar respostas' });
+            console.error('Erro ao verificar usuário:', err);
+            return res.status(500).json({ success: false, message: 'Erro interno do servidor.' });
         }
-        res.json(rows || []);
+
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Credenciais inválidas.' });
+        }
+
+        res.json({ success: true, message: 'Login bem-sucedido.' });
     });
 });
 
-// Criar nova resposta
-app.post('/api/responses', (req, res) => {
+// Rota para atualizar resposta
+app.put('/api/responses/:id', (req, res) => {
+    const { id } = req.params;
     const data = req.body;
-    
-    // Validar unit e q1 a q40
-    const requiredFields = ['unit'].concat(Array.from({length: 40}, (_, i) => `q${i+1}`));
+
+    // Validar unit e respostas q1 a q40
+    const requiredFields = ['unit'].concat(Array.from({ length: 40 }, (_, i) => `q${i + 1}`));
     const missingFields = requiredFields.filter(field => !data[field]);
     if (missingFields.length > 0) {
         return res.status(400).json({ error: `Campos obrigatórios ausentes: ${missingFields.join(', ')}` });
@@ -169,24 +154,27 @@ app.post('/api/responses', (req, res) => {
     // Validar opções de resposta
     for (let i = 1; i <= 40; i++) {
         const q = `q${i}`;
-        const options = QUESTION_OPTIONS[q] || QUESTION_OPTIONS.default;
+        const optionKey = QUESTION_OPTIONS[q] || QUESTION_OPTIONS.default;
+        const options = RESPONSE_OPTIONS[optionKey];
         if (!options.includes(data[q])) {
             return res.status(400).json({ error: `Resposta inválida para ${q}: ${data[q]}` });
         }
     }
-    
-    // Inserir q1 a q40
-    const fields = requiredFields;
-    const placeholders = fields.map(() => '?').join(', ');
-    const values = fields.map(field => data[field]);
-    const query = `INSERT INTO responses (${fields.join(', ')}) VALUES (${placeholders})`;
+
+    // Atualizar no banco
+    const updates = requiredFields.map(field => `${field} = ?`).join(', ');
+    const values = requiredFields.map(field => data[field]).concat([id]);
+    const query = `UPDATE responses SET ${updates} WHERE id = ?`;
 
     db.run(query, values, function(err) {
         if (err) {
-            console.error('Erro ao salvar resposta:', err);
-            return res.status(500).json({ error: 'Erro interno ao salvar resposta' });
+            console.error('Erro ao atualizar resposta:', err);
+            return res.status(500).json({ error: 'Erro interno ao atualizar resposta' });
         }
-        res.status(201).json({ id: this.lastID, message: 'Resposta criada com sucesso' });
+        if (this.changes === 0) {
+            return res.status(404).json({ error: `Resposta com ID ${id} não encontrada` });
+        }
+        res.json({ id, message: 'Resposta atualizada com sucesso' });
     });
 });
 

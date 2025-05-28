@@ -38,56 +38,54 @@ const RESPONSE_OPTIONS = {
 
 // Mapeamento das perguntas para suas opções de resposta
 const QUESTION_OPTIONS = {
-    q28Select: 'health', // "Em geral sente que a sua saúde é"
-    q29Select: 'impact', // "Sente que o seu trabalho lhe exige muita energia..."
-    q30Select: 'impact', // "Sente que o seu trabalho lhe exige muito tempo..."
-    default: 'default'   // Todas as outras perguntas usam a escala padrão
+    q28: 'health',
+    q29: 'impact',
+    q30: 'impact',
+    default: 'default'
 };
 
 // Mapeamento das perguntas para exibição
 const QUESTION_LABELS = [
     'A sua carga de trabalho acumula-se por ser mal distribuída?',
     'Com que frequência não tem tempo para completar todas as tarefas do seu trabalho?',
-    'Carga de trabalho mal distribuída',
-    'Falta de tempo para tarefas',
-    'Precisa trabalhar rapidamente',
-    'Exige atenção constante',
-    'Toma decisões difíceis',
-    'Exige emocionalmente',
-    'Exige iniciativa',
-    'Permite aprender coisas novas',
-    'Informado sobre decisões',
-    'Recebe informações necessárias',
-    'Sabe suas responsabilidades',
-    'Trabalho reconhecido pela gerência',
-    'Tratado de forma justa',
-    'Ajuda do superior imediato',
-    'Bom ambiente com colegas',
-    'Oportunidades de desenvolvimento',
-    'Bom no planejamento do trabalho',
-    'Confiança da gerência',
-    'Confia nas informações da gerência',
-    'Conflitos resolvidos justamente',
-    'Trabalho igualmente distribuído',
-    'Capaz de resolver problemas',
-    'Trabalho tem significado',
-    'Sente que o trabalho é importante',
-    'Problemas do trabalho são seus',
-    'Satisfação geral com o trabalho',
-    'Preocupação com desemprego',
-    'Estado geral da saúde',
-    'Trabalho afeta vida privada (energia)',
-    'Trabalho afeta vida privada (tempo)',
-    'Acorda várias vezes à noite',
-    'Fisicamente exausto',
-    'Emocionalmente exausto',
-    'Irritado',
-    'Ansioso',
-    'Triste',
-    'Alvo de insultos/provocações',
-    'Exposto a assédio sexual',
-    'Exposto a ameaças de violência',
-    'Exposto a violência física'
+    'Precisa trabalhar muito rapidamente?',
+    'O seu trabalho exige a sua atenção constante?',
+    'O seu trabalho exige que tome decisões difíceis?',
+    'O seu trabalho exige emocionalmente de si?',
+    'O seu trabalho exige que tenha iniciativa?',
+    'O seu trabalho permite-lhe aprender coisas novas?',
+    'No seu local de trabalho, é informado com antecedência sobre decisões importantes, mudanças ou planos para o futuro?',
+    'Recebe toda a informação de que necessita para fazer bem o seu trabalho?',
+    'Sabe exatamente quais as suas responsabilidades?',
+    'O seu trabalho é reconhecido e apreciado pela gerência?',
+    'É tratado de forma justa no seu local de trabalho?',
+    'Com que frequência tem ajuda e apoio do seu superior imediato?',
+    'Existe um bom ambiente de trabalho entre si e os seus colegas?',
+    'Oferece aos indivíduos e ao grupo boas oportunidades de desenvolvimento?',
+    'É bom no planejamento do trabalho?',
+    'A gerência confia nos seus funcionários para fazer o seu trabalho bem?',
+    'Confia na informação que lhe é transmitida pela gerência?',
+    'Os conflitos são resolvidos de uma forma justa?',
+    'O trabalho é igualmente distribuído pelos funcionários?',
+    'Sou sempre capaz de resolver problemas, se tentar o suficiente.',
+    'O seu trabalho tem algum significado para si?',
+    'Sente que o seu trabalho é importante?',
+    'Sente que os problemas do seu local de trabalho são seus também?',
+    'Quão satisfeito está com o seu trabalho de uma forma global?',
+    'Sente-se preocupado em ficar desempregado?',
+    'Em geral sente que a sua saúde é:',
+    'Sente que o seu trabalho lhe exige muita energia que acaba por afetar a sua vida privada negativamente?',
+    'Sente que o seu trabalho lhe exige muito tempo que acaba por afetar a sua vida privada negativamente?',
+    'Acordou várias vezes durante a noite e depois não conseguia adormecer novamente?',
+    'Fisicamente exausto?',
+    'Emocionalmente exausto?',
+    'Irritado?',
+    'Ansioso?',
+    'Triste?',
+    'Tem sido alvo de insultos ou provocações verbais?',
+    'Tem sido exposto a assédio sexual indesejado?',
+    'Tem sido exposto a ameaças de violência?',
+    'Tem sido exposto a violência física?'
 ];
 
 // Variáveis globais
@@ -215,6 +213,7 @@ function populateSelects() {
     const unitSelects = [document.getElementById('unitSelect'), document.getElementById('unitFilter')];
     unitSelects.forEach(select => {
         if (select) {
+            select.innerHTML = '<option value="">Selecione</option>'; // Limpar e adicionar opção padrão
             UNITS.forEach(unit => {
                 const option = document.createElement('option');
                 option.value = unit;
@@ -229,7 +228,8 @@ function populateSelects() {
         const selectId = `q${i}Select`;
         const select = document.getElementById(selectId);
         if (select) {
-            const optionType = QUESTION_OPTIONS[selectId] || QUESTION_OPTIONS.default;
+            select.innerHTML = '<option value="">Selecione</option>'; // Limpar opções existentes
+            const optionType = QUESTION_OPTIONS[`q${i}`] || QUESTION_OPTIONS.default;
             const options = RESPONSE_OPTIONS[optionType];
             options.forEach(option => {
                 const optionElement = document.createElement('option');
@@ -291,13 +291,21 @@ async function login() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/api/login`, {
+        const loginUrl = `${API_BASE_URL}/api/login`;
+        console.log('Enviando requisição para:', loginUrl); // Debug
+        const response = await fetch(loginUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ username, password })
         });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Erro na resposta do servidor:', errorText);
+            throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
+        }
 
         const data = await response.json();
 
@@ -354,8 +362,8 @@ function showResponses() {
 async function loadDashboardData() {
     try {
         const [chartResponse, comparisonResponse] = await Promise.all([
-            fetch(`${API_BASE}/api/chart-data`),
-            fetch(`${API_BASE}/api/comparison-data`)
+            fetch(`${API_BASE_URL}/api/chart-data`),
+            fetch(`${API_BASE_URL}/api/comparison-data`)
         ]);
 
         if (!chartResponse.ok || !comparisonResponse.ok) {
@@ -377,7 +385,6 @@ async function loadDashboardData() {
         showFeedback('Erro ao carregar dados do painel. Verifique se há respostas registradas.', true);
     }
 }
-
 
 function createCharts(chartData, comparisonData) {
     Object.values(charts).forEach(chart => {
@@ -702,7 +709,7 @@ function displayResponses(responses) {
         let detailsHtml = '';
         for (let i = 1; i <= 40; i++) {
             const answer = response[`q${i}`];
-            if (answer) { // Verifica se a resposta existe
+            if (answer) {
                 detailsHtml += `
                     <div class="response-item">
                         <div class="response-question">${QUESTION_LABELS[i - 1]}</div>
@@ -737,7 +744,7 @@ async function loadResponses(unit = '') {
     container.innerHTML = '<p style="text-align: center; padding: 2rem;">Carregando respostas...</p>';
 
     try {
-        const url = unit ? `${API_BASE}/api/responses?unit=${encodeURIComponent(unit)}` : `${API_BASE}/api/responses`;
+        const url = unit ? `${API_BASE_URL}/api/responses?unit=${encodeURIComponent(unit)}` : `${API_BASE_URL}/api/responses`;
         const response = await fetch(url);
         const data = await response.json();
 
@@ -766,7 +773,6 @@ function showAddForm() {
     document.getElementById('responseModal').classList.remove('hidden');
 }
 
-
 function editResponse(id) {
     const response = currentResponses.find(r => r.id === id);
     if (!response) return;
@@ -783,34 +789,13 @@ function editResponse(id) {
     document.getElementById('responseModal').classList.remove('hidden');
 }
 
-function deleteResponse(id) {
-    if (!confirm('Tem certeza que deseja excluir esta resposta?')) return;
-
-    fetch(`${API_BASE}/api/responses/${id}`, { method: 'DELETE' })
-        .then(response => {
-            if (response.status === 204) {
-                showFeedback('Resposta excluída com sucesso', false);
-                loadResponses(); // recarregar a lista
-            } else {
-                return response.json().then(data => {
-                    throw new Error(data.error || 'Erro ao excluir resposta');
-                });
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            showFeedback('Erro ao excluir resposta.');
-        });
-}
-
-
 async function deleteResponse(id) {
     if (!confirm('Tem certeza que deseja excluir esta resposta?')) {
         return;
     }
 
     try {
-        const response = await fetch(`${API_BASE}/api/responses/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/responses/${id}`, {
             method: 'DELETE'
         });
 
@@ -856,9 +841,9 @@ async function handleResponseSubmit(e) {
 
     const responseId = document.getElementById('responseId').value;
     const isEdit = responseId !== '';
-    const url = isEdit
-        ? `${API_BASE}/api/responses/${responseId}`
-        : `${API_BASE}/api/responses`;
+    const url = isEdit 
+        ? `${API_BASE_URL}/api/responses/${responseId}`
+        : `${API_BASE_URL}/api/responses`;
 
     try {
         const response = await fetch(url, {
